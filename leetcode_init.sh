@@ -26,7 +26,7 @@ touch "$1/problem.md"
 mkdir "$1/src"
 touch "$1/src/main.rs"
 
-content_cargo="[package]\nname = \"$1\"\nversion = \"0.1.0\"\nauthors = [\"Coton\"]\nedition = \"2018\"\n[dependencies]\n"
+content_cargo="[package]\nname = \"$1\"\nversion = \"0.1.0\"\nauthors = [\"Loud_C\"]\nedition = \"2018\"\n[dependencies]\n"
 
 echo -e "$content_cargo" > "$1/Cargo.toml"
 
