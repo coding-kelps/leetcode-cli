@@ -1,3 +1,5 @@
+use crate::leetcode_problem::LeetCodeProlem;
+
 pub fn cargo_template(package_name: &str) -> String
 {
     format!(
@@ -60,4 +62,44 @@ pub fn launch_json_template(package_name: &str) -> String
         package_name,
         package_name
     )
+}
+
+pub fn main_rs_base_template() -> String
+{
+    return format!(
+        "pub struct Solution;
+    
+    {{code}}
+
+{{main_function}}
+"
+    );
+}
+
+fn generate_vardecla(pb: LeetCodeProlem) -> String
+{
+    let result: String = pb
+        .init_var
+        .expect("init_var is None")
+        .iter()
+        .map(|(var_name, var_type, var_val)| {
+            format!("let {}:{} = {};", var_name, var_type, var_val)
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+    return result;
+}
+
+pub fn main_function_template(pb: LeetCodeProlem) -> String
+{
+    let var_decla = "".to_string();
+    return format!(
+        "fn main() {{
+    {}
+    let result = Solution::{}();
+    println!(\"{{:?}}\", result);
+}}",
+        var_decla,
+        pb.fn_name.expect("fn_name is None")
+    );
 }
