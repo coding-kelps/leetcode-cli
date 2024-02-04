@@ -6,7 +6,7 @@ use std::{
     rc::Rc,
 };
 
-use leetcode_problem::LeetCodeProlem;
+use leetcode_problem::LeetCodeProblem;
 use url::Url;
 use regex::Regex;
 use leetcoderustapi::UserApi;
@@ -19,7 +19,7 @@ struct Core
     obsidian: bool,
     vscode: bool,
     url: Option<Url>,
-    pb: LeetCodeProlem,
+    pb: LeetCodeProblem,
     api: Rc<UserApi>,
     leetcode_dir_path: &'static str,
     obsidian_vault_path: &'static str,
@@ -41,7 +41,7 @@ impl Core
             obsidian: false,
             vscode: false,
             url: None,
-            pb: LeetCodeProlem::new(),
+            pb: LeetCodeProblem::new(),
             api: Rc::new(UserApi::new(&token).await?),
             leetcode_dir_path: "/home/louis/Work/leetcode/",
             obsidian_vault_path: "/home/louis/Foundation/",
@@ -283,7 +283,7 @@ impl Core
         self.get_number().await?;
         self.get_desc().await?;
         self.get_code().await?;
-        let _ = self.pb.atomization();
+        self.pb.atomization().expect("Could not atomize pb");
         Ok(())
     }
 
@@ -304,6 +304,10 @@ impl Core
             template::main_function_template(self.pb.clone());
         main_rs_content = main_rs_content
             .replace("{main_function}", main_function_template.as_str());
+        main_rs_content = main_rs_content.replace(
+            "{tests}",
+            template::tests_template(self.pb.clone()).as_str(),
+        );
         self.create_file(
             format!("{}/main.rs", self.src_folder_name_path),
             Some(main_rs_content),
