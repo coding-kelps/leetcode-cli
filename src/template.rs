@@ -68,9 +68,9 @@ pub fn main_rs_base_template() -> String
 {
     return format!(
         "pub struct Solution;
-    
+
 {{code}}
-    
+
 {{tests}}
 
 {{main_function}}
