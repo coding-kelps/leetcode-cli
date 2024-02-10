@@ -11,7 +11,7 @@ pub struct LeetCodeProblem
     pub fn_nb_args: Option<usize>,
     pub raw_fn_args: Option<String>,
     pub fn_args: Option<Vec<String>>,
-    pub_fn_args_type: Option<Vec<String>>,
+    pub fn_args_type: Option<Vec<String>>,
     pub fn_args_name: Option<Vec<String>>,
     pub fn_rtype: Option<String>,
     pub total_examples: Option<u32>,
@@ -32,7 +32,7 @@ impl LeetCodeProblem
             fn_nb_args: None,
             raw_fn_args: None,
             fn_args: None,
-            pub_fn_args_type: None,
+            fn_args_type: None,
             fn_args_name: None,
             fn_rtype: None,
             total_examples: None,
@@ -95,7 +95,7 @@ impl LeetCodeProblem
                     .to_string()
             })
             .collect();
-        self.pub_fn_args_type = Some(types);
+        self.fn_args_type = Some(types);
         self.fn_args_name = Some(names.clone());
         self.fn_nb_args = Some(names.len());
         Ok(())
@@ -193,7 +193,7 @@ impl LeetCodeProblem
 
             for arg_index in 0..self.fn_nb_args.unwrap() {
                 let arg_type =
-                    self.pub_fn_args_type.as_ref().unwrap()[arg_index].clone();
+                    self.fn_args_type.as_ref().unwrap()[arg_index].clone();
                 let arg_name =
                     self.fn_args_name.as_ref().unwrap()[arg_index].clone();
                 let arg_val = self.get_example_value(&mut input);
