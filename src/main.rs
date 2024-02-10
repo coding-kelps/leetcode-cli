@@ -206,7 +206,8 @@ impl Core
             let code_snippets = &snippet.unwrap();
             for code_snippet in code_snippets {
                 if code_snippet.lang == "Rust" {
-                    self.pb.code = Some(code_snippet.code.clone());
+                    self.pb.code =
+                        Some(code_snippet.code.clone().trim_end().to_string());
                     return Ok(());
                 }
             }
@@ -301,7 +302,7 @@ impl Core
         let mut main_rs_content = template::main_rs_base_template();
         main_rs_content = main_rs_content.replace("{code}", &code);
         let main_function_template =
-            template::main_function_template(self.pb.clone());
+        template::main_function_template(self.pb.clone());
         main_rs_content = main_rs_content
             .replace("{main_function}", main_function_template.as_str());
         main_rs_content = main_rs_content.replace(

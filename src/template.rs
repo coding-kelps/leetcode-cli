@@ -136,16 +136,9 @@ mod tests {{
     return r;
 }
 
-pub fn main_function_template(pb: LeetCodeProblem) -> String
+pub fn main_function_template(_pb: LeetCodeProblem) -> String
 {
-    let var_decla = "".to_string();
     return format!(
-        "fn main() {{
-    {}
-    // let result = Solution::{}();
-    // println!(\"{{:?}}\", result);
-}}",
-        var_decla,
-        pb.fn_name.expect("fn_name is None")
+        "fn main() {{}}",
     );
 }

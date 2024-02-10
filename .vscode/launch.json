@@ -16,7 +16,7 @@
                     "kind": "bin"
                 }
             },
-            "args": ["-ov", "https://leetcode.com/problems/rotate-array/description/?envType=study-plan-v2&envId=top-interview-150"],
+            "args": ["-ov", "https://leetcode.com/problems/contains-duplicate/"],
             "cwd": "${workspaceFolder}"
         },
         {

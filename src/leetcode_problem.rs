@@ -46,7 +46,6 @@ impl LeetCodeProblem
         let code = self.code.as_ref().unwrap().clone();
         let pattern = Regex::new(r"pub fn (.*)\(").unwrap();
         let function_name = pattern.captures(code.as_str()).unwrap();
-        println!("{}", function_name.get(1).unwrap().as_str());
         self.fn_name =
             Some(function_name.get(1).unwrap().as_str().to_string());
         Ok(())
@@ -57,7 +56,6 @@ impl LeetCodeProblem
         let code = self.code.as_ref().unwrap().clone();
         let pattern = Regex::new(r"pub fn .*?\((.*?)\)").unwrap();
         let function_args = pattern.captures(code.as_str()).unwrap();
-        println!("{}", function_args.get(1).unwrap().as_str());
         self.raw_fn_args =
             Some(function_args.get(1).unwrap().as_str().to_string());
         Ok(())
@@ -139,12 +137,13 @@ impl LeetCodeProblem
                     break;
                 }
             }
+            input.drain(0..r.len() - 4);
         } else {
             r = input.split(",").collect::<Vec<&str>>()[0]
                 .trim()
                 .to_string();
+            input.drain(0..r.len());
         }
-        input.drain(0..r.len() - 4);
         r
     }
 
