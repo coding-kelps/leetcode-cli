@@ -1,14 +1,12 @@
 [package]
-name = "leetcode_init"
+name = "leetcode_cli"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-url = "2.5.0"
 regex = "1.5.0"
-leetcoderustapi = "1.0.6"
+leetcoderustapi = "1.0.8"
 tokio = { version = "1.12.0", features = ["full"] }
-dotenv = "0.15.0"
+dotenvy = "0.15.0"
 html2md = "0.2.14"
+
