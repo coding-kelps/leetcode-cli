@@ -3,6 +3,9 @@ use clap::{
     Subcommand,
 };
 
+mod config;
+use config::Config;
+
 #[derive(Parser, Debug)]
 #[command(version = "0.1.0", about = "A cli to interact with leetcode.")]
 struct Cli
@@ -43,17 +46,18 @@ enum Commands
     },
 }
 
-fn main()
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>>
 {
     let cli = Cli::parse();
-
-    // leetcode token check
+    let mut config = Config::new();
+    config.status().await?;
 
     match &cli.command {
         Commands::Info {
             id,
         } => {
-            println!("Problem ID: {}", id);
+            println!("asking for info on problem ID: {}", id);
         },
         Commands::Get {
             id,
@@ -70,4 +74,5 @@ fn main()
             println!("Path to file: {}", path_to_file);
         },
     }
+    Ok(())
 }

@@ -18,6 +18,5 @@ Cargo.lock
 
 /target
 .env
-src/config.rs
 
 .vscode
