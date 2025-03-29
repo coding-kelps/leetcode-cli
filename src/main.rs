@@ -28,7 +28,7 @@ enum Commands
         #[arg(short = 'i', long)]
         id: u32,
 
-        #[arg(short = 'l', long)]
+        #[arg(short = 'l', long = "lang")]
         language: String,
     },
     #[command(short_flag = 's')]
@@ -38,7 +38,7 @@ enum Commands
         #[arg(short = 'i', long)]
         id: u32,
 
-        #[arg(short = 'p', long)]
+        #[arg(short = 'p', long = "file")]
         path_to_file: String,
     },
 }
