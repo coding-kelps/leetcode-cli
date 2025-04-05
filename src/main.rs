@@ -5,6 +5,8 @@ use clap::{
 
 mod config;
 use config::Config;
+mod leetcode_api_runner;
+use leetcode_api_runner::LeetcodeApiRunner;
 
 #[derive(Parser, Debug)]
 #[command(version = "0.1.0", about = "A cli to interact with leetcode.")]
@@ -52,12 +54,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>
     let cli = Cli::parse();
     let mut config = Config::new();
     config.status().await?;
+    let api_runner = LeetcodeApiRunner::new(config).await;
 
     match &cli.command {
         Commands::Info {
             id,
         } => {
-            println!("asking for info on problem ID: {}", id);
+            api_runner.get_problem_info(*id).await;
         },
         Commands::Get {
             id,
