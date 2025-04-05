@@ -1,46 +1,14 @@
+mod cli;
 mod config;
 mod leetcode_api_runner;
 
-use clap::{
-    Parser,
-    Subcommand,
+use clap::Parser;
+use cli::{
+    Cli,
+    Commands,
 };
 use config::Config;
 use leetcode_api_runner::LeetcodeApiRunner;
-
-#[derive(Parser, Debug)]
-#[command(version = "0.1.0", about = "A cli to interact with leetcode.")]
-struct Cli
-{
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Subcommand, Debug)]
-enum Commands
-{
-    Info
-    {
-        #[arg(short = 'i', long)]
-        id: u32,
-    },
-    Start
-    {
-        #[arg(short = 'i', long)]
-        id: u32,
-
-        #[arg(short = 'l', long = "lang")]
-        language: String,
-    },
-    Submit
-    {
-        #[arg(short = 'i', long)]
-        id: u32,
-
-        #[arg(short = 'p', long = "file")]
-        path_to_file: String,
-    },
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>>
@@ -62,6 +30,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>
         } => {
             println!("Problem ID: {}", id);
             println!("Language: {}", language);
+            unimplemented!();
         },
         Commands::Submit {
             id,
@@ -69,6 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>
         } => {
             println!("Problem ID: {}", id);
             println!("Path to file: {}", path_to_file);
+            unimplemented!();
         },
     }
     Ok(())
