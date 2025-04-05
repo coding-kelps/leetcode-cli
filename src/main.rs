@@ -1,11 +1,11 @@
+mod config;
+mod leetcode_api_runner;
+
 use clap::{
     Parser,
     Subcommand,
 };
-
-mod config;
 use config::Config;
-mod leetcode_api_runner;
 use leetcode_api_runner::LeetcodeApiRunner;
 
 #[derive(Parser, Debug)]
@@ -19,27 +19,21 @@ struct Cli
 #[derive(Subcommand, Debug)]
 enum Commands
 {
-    #[command(short_flag = 'i')]
     Info
     {
-        /// The problem number
         #[arg(short = 'i', long)]
         id: u32,
     },
-    #[command(short_flag = 'g')]
-    Get
+    Start
     {
-        /// The problem number
         #[arg(short = 'i', long)]
         id: u32,
 
         #[arg(short = 'l', long = "lang")]
         language: String,
     },
-    #[command(short_flag = 's')]
     Submit
     {
-        /// The problem number
         #[arg(short = 'i', long)]
         id: u32,
 
@@ -62,7 +56,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>
         } => {
             api_runner.get_problem_info(*id).await;
         },
-        Commands::Get {
+        Commands::Start {
             id,
             language,
         } => {
