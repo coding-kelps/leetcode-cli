@@ -11,7 +11,7 @@ pub struct Config
     home_dir: Option<PathBuf>,
     config_dir: Option<PathBuf>,
     config_file: Option<PathBuf>,
-    leetcode_token: Option<String>,
+    pub leetcode_token: Option<String>,
 }
 
 impl Config
