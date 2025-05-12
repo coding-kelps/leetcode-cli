@@ -73,7 +73,7 @@ Login to LeetCode and obtain the csrftoken and LEETCODE_SESSION cookie values.
 ## Usage
 
 For more details on available commands, run:
-g
+
 ```sh
 leetcode_cli --help
 ```
