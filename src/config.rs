@@ -8,25 +8,28 @@ use serde::Deserialize;
 #[derive(Deserialize, Debug)]
 pub struct Config
 {
-    home_dir: Option<PathBuf>,
-    config_dir: Option<PathBuf>,
-    config_file: Option<PathBuf>,
-    pub leetcode_token: Option<String>,
+    home_dir:             Option<PathBuf>,
+    config_dir:           Option<PathBuf>,
+    config_file:          Option<PathBuf>,
+    pub leetcode_token:   Option<String>,
+    pub default_language: Option<String>,
 }
 
 impl Config
 {
     pub fn new() -> Self
     {
-        let home_dir = dirs::home_dir().expect("Unable to determine home directory");
+        let home_dir =
+            dirs::home_dir().expect("Unable to determine home directory");
         let config_dir = home_dir.join(".config/leetcode-cli");
         let config_file = config_dir.join("config.toml");
 
         Config {
-            home_dir: Some(home_dir),
-            config_dir: Some(config_dir),
-            config_file: Some(config_file),
-            leetcode_token: None,
+            home_dir:         Some(home_dir),
+            config_dir:       Some(config_dir),
+            config_file:      Some(config_file),
+            leetcode_token:   None,
+            default_language: None,
         }
     }
     /// create a config file in ~/.config/leetcode-cli/config.toml
@@ -51,6 +54,14 @@ impl Config
             let config: Config =
                 toml::from_str(&config_file).expect("Unable to parse file");
             self.leetcode_token = config.leetcode_token;
+            self.default_language = config.default_language;
+            if self.default_language.is_some() {
+                println!(
+                    "default_language set to {} in {}",
+                    self.default_language.as_ref().unwrap(),
+                    self.config_file.as_ref().unwrap().display()
+                );
+            }
             self.check_token().await?;
         } else {
             self.create_config_file();
