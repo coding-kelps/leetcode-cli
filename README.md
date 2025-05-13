@@ -10,7 +10,7 @@ leetcode_cli info --id 32
 
 gives:
 
-```
+```leetcode problem
 32 Hard: Longest Valid Parentheses
 
 Given a string containing just the characters '(' and ')',
@@ -51,22 +51,29 @@ cargo install --path .
 
 ## Configuration
 
-The `leetcode_cli` tool uses a configuration file to store necessary settings, such as your LeetCode token or your desired language.  
+The `leetcode_cli` tool uses a configuration file to store necessary settings.
 The configuration file is located at:
 
-```rust
+```sh
 ~/.config/leetcode-cli/config.toml
+```
+and should look like this:
+
+```toml
+leetcode_token="YOUR_TOKEN_HERE" # obtained from the cookie section below
+default_language="python3" # could be any language supported by leetcode, re-prompted if not found for a given problem
+leetcode_directory_path="~/leetcode" # where to store the downloaded problems
 ```
 
 ## Cookie
 
 To obtain your LeetCode token, follow these steps:  
-Login to LeetCode and obtain the csrftoken and LEETCODE_SESSION cookie values.
+Login to LeetCode and obtain the csrftoken from the cookie value.
 
 - After logging in, right-click on the page and press Inspect.
 - Refresh the page.
 - Look for a network request to https://leetcode.com and select it.
-- Look under Request Headers for the cookie: attribute to find the values.
+- Look under Request Headers for the "Cookie:" attribute.
 - right-click on the cookie value and select Copy Value.
 - Paste the values into the config.toml file, in the quotes of leetcode_token entry
 
