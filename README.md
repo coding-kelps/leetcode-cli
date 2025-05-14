@@ -62,7 +62,7 @@ and should look like this:
 ```toml
 leetcode_token="YOUR_TOKEN_HERE" # obtained from the cookie section below
 default_language="python3" # could be any language supported by leetcode, re-prompted if not found for a given problem
-leetcode_directory_path="~/leetcode" # where to store the downloaded problems
+leetcode_dir_path="~/leetcode" # where to store the downloaded problems
 ```
 
 ## Cookie
