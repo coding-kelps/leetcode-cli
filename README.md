@@ -36,7 +36,7 @@ s[i] is '(', or ')'.
 - [ ] Automatic token generation / refresh
 - [x] Search problems
 - [ ] Automatically create test cases based on the problem description
-- [ ] Download problems in any programming language
+- [x] Download problems in any programming language
 - [ ] Submit solution(s) for any given problem
 
 ## Installation
