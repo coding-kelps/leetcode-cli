@@ -1,6 +1,7 @@
 mod cli;
 mod config;
 mod leetcode_api_runner;
+mod utils;
 
 use clap::Parser;
 use cli::{
@@ -22,7 +23,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>
         Commands::Info {
             id,
         } => {
-            api_runner.get_problem_info(*id).await;
+            let info = api_runner.get_problem_info(*id).await;
+            match info {
+                Ok(info) => println!("{}", info),
+                Err(e) => eprintln!("Error: {}", e),
+            }
         },
         Commands::Start {
             id,
@@ -30,7 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>
         } => {
             println!("Problem ID: {}", id);
             println!("Language: {}", language);
-            unimplemented!();
+            api_runner.start_problem(*id).await?;
         },
         Commands::Submit {
             id,
