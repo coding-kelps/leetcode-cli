@@ -1,31 +1,27 @@
 use std::{
     fs,
     io,
-    path::PathBuf,
 };
 
 use colored::Colorize;
-use leetcoderustapi::{
-    resources::Description,
-    UserApi,
-};
+use leetcoderustapi::UserApi;
 use nanohtml2text::html2text;
 
 use crate::{
     config::Config,
-    utils::ensure_directory_exists,
+    utils::{
+        ensure_directory_exists,
+        write_to_file,
+    },
 };
 
-pub struct LeetcodeApiRunner
-{
+pub struct LeetcodeApiRunner {
     config: Config,
     api:    UserApi,
 }
 
-impl LeetcodeApiRunner
-{
-    pub async fn new(mut config: Config) -> Self
-    {
+impl LeetcodeApiRunner {
+    pub async fn new(mut config: Config) -> Self {
         let token = config.leetcode_token.take().unwrap();
         let api = UserApi::new(&token).await.unwrap();
         LeetcodeApiRunner {
@@ -34,8 +30,7 @@ impl LeetcodeApiRunner
         }
     }
 
-    pub async fn get_problem_info(&self, id: u32) -> io::Result<String>
-    {
+    pub async fn get_problem_info(&self, id: u32) -> io::Result<String> {
         let pb = self.api.set_problem_by_id(id).await.unwrap();
 
         let title = pb.description().unwrap().name.bold().cyan();
@@ -50,8 +45,11 @@ impl LeetcodeApiRunner
         Ok(format!("{} {}: {}\n{}", id, difficulty, title, description))
     }
 
-    pub async fn submit_solution(&self, id: u32, path_to_file: String)
-    {
+    /// automatically detect if leetcode_dir exists and use that directory
+    /// automatically detect the language from the file extension
+    #[allow(dead_code)]
+    #[allow(unused)]
+    pub async fn submit_solution(&self, id: u32, path_to_file: String) {
         unimplemented!();
         // let subm_response = problem_info
         // .send_subm(ProgrammingLanguage::Rust, "impl Solution { fn two_sum()
@@ -59,11 +57,9 @@ impl LeetcodeApiRunner
         // .unwrap();
     }
 
-    pub async fn start_problem(&self, id: u32) -> io::Result<PathBuf>
-    {
+    pub async fn start_problem(&self, id: u32) -> io::Result<String> {
         // Ensure the main leetcode directory exists
         let leetcode_dir = self.config.resolve_leetcode_dir()?;
-
         let pb = self.api.set_problem_by_id(id).await.unwrap();
         let problem_name = pb.description().unwrap().name;
         let problem_name = problem_name.replace(" ", "_");
@@ -74,12 +70,14 @@ impl LeetcodeApiRunner
         let problem_dir = leetcode_dir.join(format!("{}_{}", id, problem_name));
         ensure_directory_exists(&problem_dir)?;
 
-        let readme_path = problem_dir.join("README.md");
-        fs::write(
-            readme_path,
-            format!("# Problem {}:{}\n\n{}", id, problem_name, md_description),
-        )
-        .expect("Unable to write README file");
-        Ok(problem_dir)
+        let readme_content =
+            format!("# Problem {}: {}\n\n{}", id, problem_name, md_description);
+        write_to_file(&problem_dir, "README.md", &readme_content);
+        Ok(format!(
+            "Problem {}: {} has been created at {}",
+            id,
+            problem_name,
+            problem_dir.display()
+        ))
     }
 }
