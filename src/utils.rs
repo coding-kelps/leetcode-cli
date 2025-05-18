@@ -60,3 +60,63 @@ pub fn parse_programming_language(
         _ => panic!("Unsupported language: {}", lang),
     }
 }
+
+pub fn get_file_name(lang: &leetcoderustapi::ProgrammingLanguage) -> String {
+    match lang {
+        leetcoderustapi::ProgrammingLanguage::CPP => "main.cpp".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Java => "Main.java".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python => "main.py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python3 => "main.py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::C => "main.c".to_string(),
+        leetcoderustapi::ProgrammingLanguage::CSharp => "Main.cs".to_string(),
+        leetcoderustapi::ProgrammingLanguage::JavaScript => {
+            "main.js".to_string()
+        },
+        leetcoderustapi::ProgrammingLanguage::TypeScript => {
+            "main.ts".to_string()
+        },
+        leetcoderustapi::ProgrammingLanguage::Ruby => "main.rb".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Swift => "main.swift".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Go => "main.go".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Bash => "main.sh".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Scala => "main.scala".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Kotlin => "main.kt".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Rust => "main.rs".to_string(),
+        leetcoderustapi::ProgrammingLanguage::PHP => "main.php".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Racket => "main.rkt".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Erlang => "main.erl".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Elixir => "main.ex".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Dart => "main.dart".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Pandas => "main.py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::React => "main.jsx".to_string(),
+        _ => panic!("Unsupported language"),
+    }
+}
+
+pub fn language_to_string(
+    lang: &leetcoderustapi::ProgrammingLanguage,
+) -> String {
+    match lang {
+        leetcoderustapi::ProgrammingLanguage::CPP => "cpp".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Java => "java".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python => "python".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python3 => "python3".to_string(),
+        leetcoderustapi::ProgrammingLanguage::C => "c".to_string(),
+        leetcoderustapi::ProgrammingLanguage::CSharp => "csharp".to_string(),
+        leetcoderustapi::ProgrammingLanguage::JavaScript => {
+            "javascript".to_string()
+        },
+        leetcoderustapi::ProgrammingLanguage::TypeScript => {
+            "typescript".to_string()
+        },
+        leetcoderustapi::ProgrammingLanguage::Ruby => "ruby".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Swift => "swift".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Go => "go".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Bash => "bash".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Scala => "scala".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Kotlin => "kotlin".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Rust => "rust".to_string(),
+        leetcoderustapi::ProgrammingLanguage::PHP => "php".to_string(),
+        _ => panic!("Unsupported language"),
+    }
+}
