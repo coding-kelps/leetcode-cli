@@ -37,7 +37,7 @@ s[i] is '(', or ')'.
 - [x] Search problems
 - [ ] Automatically create test cases based on the problem description
 - [x] Download problems in any programming language
-- [ ] Submit solution(s) for any given problem
+- [x] Submit solution(s) for any given problem
 
 ## Installation
 
