@@ -60,8 +60,8 @@ The configuration file is located at:
 and should look like this:
 
 ```toml
-leetcode_token="YOUR_TOKEN_HERE" # obtained from the cookie section below
-default_language="python3" # could be any language supported by leetcode, re-prompted if not found for a given problem
+leetcode_token='YOUR_TOKEN_HERE' # (In single quote!) obtained from the cookie section below
+default_language="Rust" # could be any language supported by leetcode, re-prompted if not found for a given problem
 leetcode_dir_path="~/leetcode" # where to store the downloaded problems
 ```
 
