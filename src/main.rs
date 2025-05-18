@@ -22,18 +22,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Commands::Info {
             id,
         } => {
-            let info = api_runner.get_problem_info(*id).await;
-            match info {
-                Ok(info) => println!("{}", info),
-                Err(e) => eprintln!("Error: {}", e),
-            }
+            println!("{}", api_runner.get_problem_info(*id).await?);
         },
         Commands::Start {
             id,
             language,
         } => {
             let language = utils::parse_programming_language(language);
-            api_runner.start_problem(*id, language).await?;
+            println!(
+                "{}\nHappy Coding :)",
+                api_runner.start_problem(*id, language).await?
+            );
         },
         Commands::Submit {
             id,
