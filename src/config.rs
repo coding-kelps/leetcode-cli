@@ -1,6 +1,3 @@
-#![allow(dead_code)]
-#![allow(unreachable_code)]
-
 use std::{
     fs,
     io,
@@ -48,6 +45,9 @@ impl Config {
         std::fs::File::create(&config_file).expect("Unable to create file");
     }
     /// check for a config file in ~/.config/leetcode-cli/config.toml
+    /// read it or create it if it doesn't exist with default values
+    /// load the config in Config struct and check if the token is valid
+    /// if the token is not valid, generate a new one
     pub async fn status(&mut self) -> Result<(), reqwest::Error> {
         if self.config_file.is_some() {
             let config_file =
