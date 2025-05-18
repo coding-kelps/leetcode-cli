@@ -15,4 +15,5 @@ dirs = "6.0.0"
 warp = "0.3.7"
 colored = "3.0.0"
 nanohtml2text = "0.2.1"
+html2md = "0.2.15"
 
