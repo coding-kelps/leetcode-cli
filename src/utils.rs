@@ -120,3 +120,38 @@ pub fn language_to_string(
         _ => panic!("Unsupported language"),
     }
 }
+
+pub fn extension_programming_language(
+    file_content: &str,
+) -> leetcoderustapi::ProgrammingLanguage {
+    let extension = file_content
+        .lines()
+        .next()
+        .unwrap_or("")
+        .trim_start_matches("//")
+        .trim();
+    match extension {
+        "cpp" => leetcoderustapi::ProgrammingLanguage::CPP,
+        "java" => leetcoderustapi::ProgrammingLanguage::Java,
+        "py" => leetcoderustapi::ProgrammingLanguage::Python3,
+        "python3" | "py3" => leetcoderustapi::ProgrammingLanguage::Python3,
+        "c" => leetcoderustapi::ProgrammingLanguage::C,
+        "cs" => leetcoderustapi::ProgrammingLanguage::CSharp,
+        "js" => leetcoderustapi::ProgrammingLanguage::JavaScript,
+        "ts" => leetcoderustapi::ProgrammingLanguage::TypeScript,
+        "rb" => leetcoderustapi::ProgrammingLanguage::Ruby,
+        "swift" => leetcoderustapi::ProgrammingLanguage::Swift,
+        "go" | "golang" => leetcoderustapi::ProgrammingLanguage::Go,
+        "sh" | "shell" => leetcoderustapi::ProgrammingLanguage::Bash,
+        "scala" => leetcoderustapi::ProgrammingLanguage::Scala,
+        "kt" => leetcoderustapi::ProgrammingLanguage::Kotlin,
+        "rs" => leetcoderustapi::ProgrammingLanguage::Rust,
+        "php" => leetcoderustapi::ProgrammingLanguage::PHP,
+        "rkt" => leetcoderustapi::ProgrammingLanguage::Racket,
+        "erl" => leetcoderustapi::ProgrammingLanguage::Erlang,
+        "ex" | "exs" => leetcoderustapi::ProgrammingLanguage::Elixir,
+        "dart" => leetcoderustapi::ProgrammingLanguage::Dart,
+        "jsx" => leetcoderustapi::ProgrammingLanguage::React,
+        _ => panic!("Unsupported language: {}", extension),
+    }
+}

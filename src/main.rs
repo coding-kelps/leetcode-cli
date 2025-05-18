@@ -34,13 +34,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 api_runner.start_problem(*id, language).await?
             );
         },
+        Commands::Test {
+            id,
+            path_to_file,
+        } => {
+            let test_result =
+                api_runner.test_response(*id, path_to_file.clone()).await?;
+            println!("Test result: {}", test_result);
+        },
         Commands::Submit {
             id,
             path_to_file,
         } => {
-            println!("Problem ID: {}", id);
-            println!("Path to file: {}", path_to_file);
-            unimplemented!();
+            let submit_result = api_runner
+                .submit_response(*id, path_to_file.clone())
+                .await?;
+            println!("Submit result: {}", submit_result);
         },
     }
     Ok(())

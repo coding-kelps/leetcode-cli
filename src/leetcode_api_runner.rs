@@ -120,4 +120,37 @@ impl LeetcodeApiRunner {
         write_to_file(problem_dir, &file_name, &starter_code);
         Ok(())
     }
+
+    pub async fn test_response(
+        &self, id: u32, path_to_file: String,
+    ) -> io::Result<String> {
+        let problem_info = self.api.set_problem_by_id(id).await.unwrap();
+        // read the file content
+        let file_content = std::fs::read_to_string(path_to_file)
+            .expect("Unable to read the file");
+        let language = utils::extension_programming_language(&file_content);
+        let test_response = problem_info
+            .send_test(language, &file_content)
+            .await
+            .unwrap();
+        Ok(format!("Test response for problem {}: {:#?}", id, test_response))
+    }
+
+    pub async fn submit_response(
+        &self, id: u32, path_to_file: String,
+    ) -> io::Result<String> {
+        let problem_info = self.api.set_problem_by_id(id).await.unwrap();
+        // read the file content
+        let file_content = std::fs::read_to_string(path_to_file)
+            .expect("Unable to read the file");
+        let language = utils::extension_programming_language(&file_content);
+        let test_response = problem_info
+            .send_test(language, &file_content)
+            .await
+            .unwrap();
+        Ok(format!(
+            "Here's your submit response for problem {}: {:#?}",
+            id, test_response
+        ))
+    }
 }
