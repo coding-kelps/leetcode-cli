@@ -12,8 +12,7 @@ use config::Config;
 use leetcode_api_runner::LeetcodeApiRunner;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>>
-{
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let mut config = Config::new();
     config.status().await?;
@@ -33,9 +32,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>>
             id,
             language,
         } => {
-            println!("Problem ID: {}", id);
-            println!("Language: {}", language);
-            api_runner.start_problem(*id).await?;
+            let language = utils::parse_programming_language(language);
+            api_runner.start_problem(*id, language).await?;
         },
         Commands::Submit {
             id,

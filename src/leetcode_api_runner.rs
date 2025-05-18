@@ -1,10 +1,10 @@
-use std::{
-    fs,
-    io,
-};
+use std::io;
 
 use colored::Colorize;
-use leetcoderustapi::UserApi;
+use leetcoderustapi::{
+    ProgrammingLanguage,
+    UserApi,
+};
 use nanohtml2text::html2text;
 
 use crate::{
@@ -57,26 +57,26 @@ impl LeetcodeApiRunner {
         // .unwrap();
     }
 
-    pub async fn start_problem(&self, id: u32) -> io::Result<String> {
+    pub async fn start_problem(
+        &self, id: u32, language: ProgrammingLanguage,
+    ) -> io::Result<String> {
         // Ensure the main leetcode directory exists
         let leetcode_dir = self.config.resolve_leetcode_dir()?;
         let pb = self.api.set_problem_by_id(id).await.unwrap();
-        let problem_name = pb.description().unwrap().name;
-        let problem_name = problem_name.replace(" ", "_");
-        let html_description = pb.description().unwrap().content;
-        let md_description = html2md::parse_html(&html_description);
+        let pb_desc = pb.description().unwrap();
+        let pb_name = pb_desc.name.replace(" ", "_");
+        let md_desc = html2md::parse_html(&pb_desc.content);
 
         // Ensure the problem-specific directory exists
-        let problem_dir = leetcode_dir.join(format!("{}_{}", id, problem_name));
+        let problem_dir = leetcode_dir.join(format!("{}_{}", id, pb_name));
         ensure_directory_exists(&problem_dir)?;
 
-        let readme_content =
-            format!("# Problem {}: {}\n\n{}", id, problem_name, md_description);
-        write_to_file(&problem_dir, "README.md", &readme_content);
+        let readme = format!("# Problem {}: {}\n\n{}", id, pb_name, md_desc);
+        write_to_file(&problem_dir, "README.md", &readme);
         Ok(format!(
             "Problem {}: {} has been created at {}",
             id,
-            problem_name,
+            pb_name,
             problem_dir.display()
         ))
     }
