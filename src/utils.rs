@@ -25,10 +25,11 @@ pub fn ensure_directory_exists(path: &Path) -> io::Result<PathBuf> {
 }
 
 /// Writes content to a file in the specified directory.
-pub fn write_to_file(dir: &Path, file_name: &str, content: &str) {
+pub fn write_to_file(
+    dir: &Path, file_name: &str, content: &str,
+) -> io::Result<()> {
     let file_path = dir.join(file_name);
     fs::write(file_path, content)
-        .expect(&format!("Unable to write to file: {}", file_name));
 }
 
 pub fn parse_programming_language(
@@ -89,7 +90,6 @@ pub fn get_file_name(lang: &leetcoderustapi::ProgrammingLanguage) -> String {
         leetcoderustapi::ProgrammingLanguage::Dart => "main.dart".to_string(),
         leetcoderustapi::ProgrammingLanguage::Pandas => "main.py".to_string(),
         leetcoderustapi::ProgrammingLanguage::React => "main.jsx".to_string(),
-        _ => panic!("Unsupported language"),
     }
 }
 
