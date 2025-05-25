@@ -6,7 +6,7 @@ use std::{
 
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Config {
     home_dir:              Option<PathBuf>,
     config_dir:            Option<PathBuf>,
@@ -35,9 +35,8 @@ impl Config {
     }
     /// create a config file in ~/.config/leetcode-cli/config.toml
     fn create_config_file(&self) {
-        let home_dir =
-            dirs::home_dir().expect("Unable to determine home directory");
-        let config_dir = home_dir.join(".config/leetcode-cli");
+        let config_dir =
+            self.config_dir.as_ref().expect("Config directory not set");
 
         std::fs::create_dir_all(&config_dir)
             .expect("Unable to create directory");
@@ -60,7 +59,6 @@ impl Config {
             if let Some(custom) = config.leetcode_dir_path {
                 self.leetcode_dir_path = Some(PathBuf::from(custom));
             }
-            dbg!(&self);
             self.check_token().await?;
         } else {
             self.create_config_file();
@@ -93,6 +91,8 @@ impl Config {
         self.test_token_validity().await
     }
 
+    /// Generate a new LeetCode token by prompting the user to visit the
+    /// LeetCode login page and copy the token
     fn generate_token(&mut self) {
         unimplemented!(
             "generating token is not implemented yet. Refer to the README for \
@@ -127,7 +127,7 @@ impl Config {
         };
         let raw_str = raw.as_ref();
         let mut path = if raw_str == "~" {
-            dirs::home_dir().ok_or(io::Error::new(
+            self.home_dir.clone().ok_or(io::Error::new(
                 io::ErrorKind::NotFound,
                 "Unable to find home directory",
             ))?
