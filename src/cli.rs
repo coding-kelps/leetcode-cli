@@ -35,4 +35,5 @@ pub enum Commands {
         #[arg(short = 'p', long = "file")]
         path_to_file: String,
     },
+    Debug {},
 }
