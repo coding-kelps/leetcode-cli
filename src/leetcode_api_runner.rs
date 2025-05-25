@@ -23,11 +23,11 @@ pub struct LeetcodeApiRunner {
 }
 
 impl LeetcodeApiRunner {
-    pub async fn new(mut config: Config) -> Self {
+    pub async fn new(config: &mut Config) -> Self {
         let token = config.leetcode_token.take().unwrap();
         let api = UserApi::new(&token).await.unwrap();
         LeetcodeApiRunner {
-            config,
+            config: config.clone(),
             api,
         }
     }
