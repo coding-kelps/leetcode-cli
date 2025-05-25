@@ -94,7 +94,7 @@ impl LeetcodeApiRunner {
         pb: &leetcoderustapi::problem_actions::Problem,
     ) -> io::Result<()> {
         let file_name = get_file_name(&language);
-        let str_language = utils::language_to_string(&language); // I wish ProgrammingLanguage could derive PartialEq
+        let str_language = utils::language_to_string(&language); // If only ProgrammingLanguage could derive PartialEq
 
         let starter_code = pb
             .code_snippets()
