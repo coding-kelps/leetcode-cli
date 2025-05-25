@@ -113,10 +113,10 @@ impl LeetcodeApiRunner {
         &self, id: u32, path_to_file: String,
     ) -> io::Result<String> {
         let problem_info = self.api.set_problem_by_id(id).await.unwrap();
-        // read the file content
-        let file_content = std::fs::read_to_string(path_to_file)
+        let file_content = std::fs::read_to_string(&path_to_file)
             .expect("Unable to read the file");
-        let language = utils::extension_programming_language(&file_content);
+        let language = utils::extension_programming_language(&path_to_file);
+
         let test_response = problem_info
             .send_test(language, &file_content)
             .await
@@ -128,10 +128,10 @@ impl LeetcodeApiRunner {
         &self, id: u32, path_to_file: String,
     ) -> io::Result<String> {
         let problem_info = self.api.set_problem_by_id(id).await.unwrap();
-        // read the file content
-        let file_content = std::fs::read_to_string(path_to_file)
+        let file_content = std::fs::read_to_string(&path_to_file)
             .expect("Unable to read the file");
-        let language = utils::extension_programming_language(&file_content);
+        let language = utils::extension_programming_language(&path_to_file);
+
         let test_response = problem_info
             .send_subm(language, &file_content)
             .await

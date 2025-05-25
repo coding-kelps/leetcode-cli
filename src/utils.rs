@@ -122,15 +122,11 @@ pub fn language_to_string(
 }
 
 pub fn extension_programming_language(
-    file_content: &str,
+    file_name: &str,
 ) -> leetcoderustapi::ProgrammingLanguage {
-    let extension = file_content
-        .lines()
-        .next()
-        .unwrap_or("")
-        .trim_start_matches("//")
-        .trim();
-    match extension {
+    let extension = file_name.rsplit('.').next().unwrap_or("").to_lowercase();
+    println!("Detected extension: {}", extension);
+    match extension.as_str() {
         "cpp" => leetcoderustapi::ProgrammingLanguage::CPP,
         "java" => leetcoderustapi::ProgrammingLanguage::Java,
         "py" => leetcoderustapi::ProgrammingLanguage::Python3,
