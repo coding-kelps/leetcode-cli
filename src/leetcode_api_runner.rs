@@ -55,7 +55,8 @@ impl LeetcodeApiRunner {
         let pb_name = pb_desc.name.replace(" ", "_");
         let md_desc = html2md::parse_html(&pb_desc.content);
 
-        let problem_dir = self.prepare_problem_directory(id, &pb_name)?;
+        let problem_dir =
+            self.prepare_problem_directory(id, &pb_name, &language)?;
 
         self.write_readme(&problem_dir, id, &pb_name, &md_desc)?;
         self.generate_starter_code(&problem_dir, language, &pb)?;
@@ -69,11 +70,15 @@ impl LeetcodeApiRunner {
 
     /// Prepares the problem directory.
     fn prepare_problem_directory(
-        &self, id: u32, pb_name: &str,
+        &self, id: u32, pb_name: &str, language: &ProgrammingLanguage,
     ) -> io::Result<std::path::PathBuf> {
         let leetcode_dir = self.config.resolve_leetcode_dir()?;
         let problem_dir = leetcode_dir.join(format!("{}_{}", id, pb_name));
         ensure_directory_exists(&problem_dir)?;
+
+        // Initialize language-specific project structure
+        self.initialize_language_project(&problem_dir, pb_name, language)?;
+
         Ok(problem_dir)
     }
 
@@ -140,5 +145,50 @@ impl LeetcodeApiRunner {
             "Here's your submit response for problem {}: {:#?}",
             id, test_response
         ))
+    }
+
+    /// Initializes language-specific project structure.
+    fn initialize_language_project(
+        &self, problem_dir: &std::path::Path, pb_name: &str,
+        language: &ProgrammingLanguage,
+    ) -> io::Result<()> {
+        use std::process::Command;
+
+        let result = match language {
+            ProgrammingLanguage::Rust => Command::new("cargo")
+                .args(&["init", "--name", pb_name, "--vcs", "none"])
+                .current_dir(problem_dir)
+                .output(),
+            ProgrammingLanguage::JavaScript
+            | ProgrammingLanguage::TypeScript => Command::new("npm")
+                .args(&["init", "-y"])
+                .current_dir(problem_dir)
+                .output(),
+            ProgrammingLanguage::Go => {
+                let module_name =
+                    format!("leetcode-{}", pb_name.replace("_", "-"));
+                Command::new("go")
+                    .args(&["mod", "init", &module_name])
+                    .current_dir(problem_dir)
+                    .output()
+            },
+            _ => return Ok(()),
+        };
+
+        match result {
+            Ok(output) if !output.status.success() => {
+                eprintln!(
+                    "Warning: Failed to initialize project: {}",
+                    String::from_utf8_lossy(&output.stderr)
+                );
+            },
+            Err(e) => eprintln!(
+                "Warning: Failed to run initialization command: {}",
+                e
+            ),
+            _ => {},
+        }
+
+        Ok(())
     }
 }
