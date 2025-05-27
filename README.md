@@ -1,5 +1,9 @@
 # Leetcode Command Line Interface
 
+[![Tests Status][actions-badge]][actions-url]
+
+[actions-badge]: https://github.com/coding-kelps/leetcode-cli/actions/workflows/ci.yaml/badge.svg?branch=main
+
 Interact with LeetCode in your development environment.
 
 ## Example
