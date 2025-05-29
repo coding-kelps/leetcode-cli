@@ -2,6 +2,7 @@
 
 [![Tests Status][actions-badge]][actions-url]
 
+[actions-url]: https://github.com/coding-kelps/leetcode-cli/actions?query=workflow%3ACI+branch%3Amain
 [actions-badge]: https://github.com/coding-kelps/leetcode-cli/actions/workflows/ci.yaml/badge.svg?branch=main
 
 Interact with LeetCode in your development environment.
