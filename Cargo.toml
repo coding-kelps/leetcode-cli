@@ -1,7 +1,18 @@
 [package]
-name = "leetcode_cli"
+name = "leetcode-cli"
 version = "0.1.0"
+authors = ["Coding Kelps"]
+autotests = false
+categories = ["command-line-utilities"]
+description = "Interact with LeetCode in your development environment."
 edition = "2021"
+exclude = []
+homepage = "https://github.com/coding-kelps/leetcode-cli"
+keywords = ["leetcode"]
+license = "GPL-3.0"
+readme = "README.md"
+repository = "https://github.com/coding-kelps/leetcode-cli"
+rust-version = "1.83"
 
 [dependencies]
 leetcoderustapi = "1.0.8"
@@ -16,4 +27,3 @@ warp = "0.3.7"
 colored = "3.0.0"
 nanohtml2text = "0.2.1"
 html2md = "0.2.15"
-
