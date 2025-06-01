@@ -16,12 +16,6 @@ jobs:
     uses: ./.github/workflows/ci.yaml
     secrets: inherit
 
-  update-changelog:
-    uses: ./.github/workflows/changelog.yaml
-    needs:
-      - ci
-    secrets: inherit
-
   generate-changelog:
     name: Generate a changelog
     runs-on: ubuntu-latest
@@ -47,7 +41,6 @@ jobs:
   build-publish:
     name: Build and Publish release
     needs:
-      - update-changelog
       - generate-changelog
     runs-on: ${{ matrix.build.os }}
     strategy:
