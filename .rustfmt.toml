@@ -6,8 +6,6 @@ color = "Always"
 format_strings = true
 space_after_colon = true
 
-trailling_semicolons = false
-
 # structs
 struct_field_align_threshold = 20
 struct_lit_single_line = false

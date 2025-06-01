@@ -1,22 +1,18 @@
-mod cli;
-mod config;
-mod leetcode_api_runner;
-mod utils;
-
 use clap::Parser;
-use cli::{
+use leetcode_cli::{
+    utils,
     Cli,
     Commands,
+    LeetcodeApiRunner,
+    RuntimeConfigSetup,
 };
-use config::Config;
-use leetcode_api_runner::LeetcodeApiRunner;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
-    let mut config = Config::new();
-    config.status().await?;
-    let api_runner = LeetcodeApiRunner::new(&mut config).await;
+    let mut rcs = RuntimeConfigSetup::new();
+    rcs.status()?;
+    let api_runner = LeetcodeApiRunner::new(rcs).await;
 
     match &cli.command {
         Commands::Info {
@@ -50,9 +46,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .submit_response(*id, path_to_file.clone())
                 .await?;
             println!("Submit result: {}", submit_result);
-        },
-        Commands::Debug {} => {
-            println!("{:#?}", config.clone());
         },
     }
     Ok(())

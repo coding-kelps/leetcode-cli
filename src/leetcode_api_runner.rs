@@ -8,7 +8,7 @@ use leetcoderustapi::{
 use nanohtml2text::html2text;
 
 use crate::{
-    config::Config,
+    config::RuntimeConfigSetup,
     utils::{
         self,
         ensure_directory_exists,
@@ -18,16 +18,15 @@ use crate::{
 };
 
 pub struct LeetcodeApiRunner {
-    config: Config,
-    api:    UserApi,
+    rcs: RuntimeConfigSetup,
+    api: UserApi,
 }
 
 impl LeetcodeApiRunner {
-    pub async fn new(config: &mut Config) -> Self {
-        let token = config.leetcode_token.take().unwrap();
-        let api = UserApi::new(&token).await.unwrap();
+    pub async fn new(rcs: RuntimeConfigSetup) -> Self {
+        let api = UserApi::new(&rcs.config.leetcode_token).await.unwrap();
         LeetcodeApiRunner {
-            config: config.clone(),
+            rcs,
             api,
         }
     }
@@ -72,7 +71,7 @@ impl LeetcodeApiRunner {
     fn prepare_problem_directory(
         &self, id: u32, pb_name: &str, language: &ProgrammingLanguage,
     ) -> io::Result<std::path::PathBuf> {
-        let leetcode_dir = self.config.resolve_leetcode_dir()?;
+        let leetcode_dir = self.rcs.resolve_leetcode_dir()?;
         let problem_dir = leetcode_dir.join(format!("{}_{}", id, pb_name));
         ensure_directory_exists(&problem_dir)?;
 
