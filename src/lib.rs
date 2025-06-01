@@ -1,6 +1,7 @@
 pub mod cli;
 pub mod config;
 pub mod leetcode_api_runner;
+pub mod readme_parser;
 pub mod utils;
 
 pub use cli::{
