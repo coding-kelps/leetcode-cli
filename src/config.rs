@@ -2,7 +2,6 @@ use std::{
     fs,
     io::{
         self,
-        Error,
     },
     path::PathBuf,
 };
@@ -68,23 +67,10 @@ impl RuntimeConfigSetup {
             if parsed_config.leetcode_dir_path.is_some() {
                 self.config.leetcode_dir_path = parsed_config.leetcode_dir_path;
             }
-            self.check_token()?;
         } else {
             self.create_config_file();
         }
         Ok(())
-    }
-
-    fn check_token(&mut self) -> Result<bool, io::Error> {
-        if !self.config.leetcode_token.is_empty() {
-            return Ok(true);
-        }
-        println!("No Leetcode token found.");
-        Err(Error::new(
-            io::ErrorKind::NotFound,
-            "Leetcode token not found. Please set it in the config file \
-             following readme instructions.",
-        ))
     }
 
     /// Resolve the configured LeetCode directory, expand ~, canonicalize, and
