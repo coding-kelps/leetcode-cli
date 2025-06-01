@@ -3,16 +3,16 @@ use leetcode_cli::{
     utils,
     Cli,
     Commands,
-    Config,
     LeetcodeApiRunner,
+    RuntimeConfigSetup,
 };
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
-    let mut config = Config::new();
-    config.status()?;
-    let api_runner = LeetcodeApiRunner::new(&mut config).await;
+    let mut rcs = RuntimeConfigSetup::new();
+    rcs.status()?;
+    let api_runner = LeetcodeApiRunner::new(rcs).await;
 
     match &cli.command {
         Commands::Info {
@@ -46,9 +46,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .submit_response(*id, path_to_file.clone())
                 .await?;
             println!("Submit result: {}", submit_result);
-        },
-        Commands::Debug {} => {
-            println!("{:#?}", config.clone());
         },
     }
     Ok(())

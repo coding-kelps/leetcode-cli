@@ -10,16 +10,21 @@ use std::{
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
-pub struct Config {
-    home_dir:              PathBuf,
-    config_dir:            PathBuf,
-    config_file:           PathBuf,
-    pub leetcode_token:    Option<String>,
+pub struct ConfigFile {
+    pub leetcode_token:    String,
     pub default_language:  Option<String>,
     pub leetcode_dir_path: Option<PathBuf>,
 }
 
-impl Config {
+#[derive(Deserialize, Debug, Clone)]
+pub struct RuntimeConfigSetup {
+    pub home_dir:    PathBuf,
+    pub config_dir:  PathBuf,
+    pub config_file: PathBuf,
+    pub config:      ConfigFile,
+}
+
+impl RuntimeConfigSetup {
     pub fn new() -> Self {
         let home_dir =
             dirs::home_dir().expect("Unable to determine home directory");
@@ -27,13 +32,15 @@ impl Config {
         let config_file = config_dir.join("config.toml");
         let default_leetcode_dir = home_dir.join("leetcode");
 
-        Config {
+        RuntimeConfigSetup {
             home_dir,
             config_dir,
             config_file,
-            leetcode_token: None,
-            default_language: None,
-            leetcode_dir_path: Some(default_leetcode_dir),
+            config: ConfigFile {
+                leetcode_token:    String::new(),
+                default_language:  None,
+                leetcode_dir_path: Some(default_leetcode_dir),
+            },
         }
     }
     /// create a config file in ~/.config/leetcode-cli/config.toml
@@ -51,13 +58,8 @@ impl Config {
         if self.config_file.is_file() {
             let config_file = std::fs::read_to_string(&self.config_file)
                 .expect("Unable to read file");
-            let config: Config =
-                toml::from_str(&config_file).expect("Unable to parse file");
-            self.leetcode_token = config.leetcode_token;
-            self.default_language = config.default_language;
-            if let Some(custom) = config.leetcode_dir_path {
-                self.leetcode_dir_path = Some(PathBuf::from(custom));
-            }
+            let _: ConfigFile =
+                toml::from_str(&config_file).expect("Unable to parse config");
             self.check_token()?;
         } else {
             self.create_config_file();
@@ -66,7 +68,7 @@ impl Config {
     }
 
     fn check_token(&mut self) -> Result<bool, io::Error> {
-        if self.leetcode_token.is_some() {
+        if !self.config.leetcode_token.is_empty() {
             return Ok(true);
         }
         println!("No Leetcode token found.");
@@ -80,7 +82,7 @@ impl Config {
     /// Resolve the configured LeetCode directory, expand ~, canonicalize, and
     /// create if missing.
     pub fn resolve_leetcode_dir(&self) -> io::Result<PathBuf> {
-        let raw = if let Some(ref custom) = self.leetcode_dir_path {
+        let raw = if let Some(ref custom) = self.config.leetcode_dir_path {
             custom.to_string_lossy()
         } else {
             return Err(io::Error::new(

@@ -7,5 +7,5 @@ pub use cli::{
     Cli,
     Commands,
 };
-pub use config::Config;
+pub use config::RuntimeConfigSetup;
 pub use leetcode_api_runner::LeetcodeApiRunner;
