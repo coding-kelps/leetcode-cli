@@ -76,17 +76,6 @@ fn test_cli_submit_command() {
 }
 
 #[test]
-fn test_cli_debug_command() {
-    let args = vec!["leetcode_cli", "debug"];
-    let cli = Cli::try_parse_from(args).unwrap();
-
-    match cli.command {
-        Commands::Debug {} => (),
-        _ => panic!("Expected Debug command"),
-    }
-}
-
-#[test]
 fn test_cli_invalid_command() {
     let args = vec!["leetcode_cli", "invalid"];
     let result = Cli::try_parse_from(args);

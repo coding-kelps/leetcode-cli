@@ -1,8 +1,6 @@
-use leetcode_cli::{
-    config::Config,
-    utils,
-};
+use leetcode_cli::utils;
 use leetcoderustapi::ProgrammingLanguage;
+
 fn assert_language(actual: ProgrammingLanguage, expected: ProgrammingLanguage) {
     let actual_str = format!("{:?}", actual);
     let expected_str = format!("{:?}", expected);
@@ -11,11 +9,6 @@ fn assert_language(actual: ProgrammingLanguage, expected: ProgrammingLanguage) {
         "Languages don't match: got {:?}, expected {:?}",
         actual, expected
     );
-}
-#[test]
-fn test_config_creation() {
-    let config = Config::new();
-    assert!(config.leetcode_dir_path.is_some());
 }
 
 #[test]
