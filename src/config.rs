@@ -54,12 +54,20 @@ impl RuntimeConfigSetup {
     /// read it or create it with default values if it doesn't exist
     /// load the config in Config struct and check if the token is valid
     pub fn status(&mut self) -> Result<(), io::Error> {
-        // check if the config file exists and is readable
         if self.config_file.is_file() {
             let config_file = std::fs::read_to_string(&self.config_file)
                 .expect("Unable to read file");
-            let _: ConfigFile =
+            let parsed_config: ConfigFile =
                 toml::from_str(&config_file).expect("Unable to parse config");
+            if !parsed_config.leetcode_token.is_empty() {
+                self.config.leetcode_token = parsed_config.leetcode_token;
+            }
+            if parsed_config.default_language.is_some() {
+                self.config.default_language = parsed_config.default_language;
+            }
+            if parsed_config.leetcode_dir_path.is_some() {
+                self.config.leetcode_dir_path = parsed_config.leetcode_dir_path;
+            }
             self.check_token()?;
         } else {
             self.create_config_file();
