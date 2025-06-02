@@ -1,5 +1,18 @@
+use regex::Regex;
+
 pub struct LeetcodeReadmeParser {
     pub raw: String,
+}
+
+enum RegexTarget {
+    Input,
+    Output,
+}
+
+pub struct ProblemTestData {
+    pub example_count: usize,
+    pub inputs:        Vec<String>,
+    pub outputs:       Vec<String>,
 }
 
 impl LeetcodeReadmeParser {
@@ -12,13 +25,37 @@ impl LeetcodeReadmeParser {
         if self.raw.is_empty() {
             return Err("Failed to parse empty readme".into());
         }
-        Err("Parsing not yet implemented".into())
+        Ok(ProblemTestData {
+            example_count: self.count_examples(),
+            inputs:        self.extract_examples(RegexTarget::Input),
+            outputs:       self.extract_examples(RegexTarget::Output),
+        })
     }
-}
+    fn count_examples(&self) -> usize {
+        self.raw
+            .lines()
+            .filter(|line| line.starts_with("**Example"))
+            .count()
+    }
+    fn extract_examples(&self, target: RegexTarget) -> Vec<String> {
+        let pattern = match target {
+            RegexTarget::Input => r"(?m)^\s*\*?\*?Input:\*?\*?\s*(.*)$",
+            RegexTarget::Output => r"(?m)^\s*\*?\*?Output:\*?\*?\s*(.*)$",
+        };
+        let re = Regex::new(pattern).unwrap();
 
-pub struct ProblemTestData {
-    pub id:          u32,
-    pub title:       String,
-    pub difficulty:  String,
-    pub description: String,
+        let mut result = Vec::new();
+        for capture in re.captures_iter(&self.raw) {
+            if let Some(matched) = capture.get(1) {
+                let res = matched
+                    .as_str()
+                    .replace('\n', " ")
+                    .replace('\t', " ")
+                    .trim()
+                    .to_string();
+                result.push(res);
+            }
+        }
+        result
+    }
 }
