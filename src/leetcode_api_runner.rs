@@ -23,10 +23,10 @@ pub struct LeetcodeApiRunner {
 }
 
 impl LeetcodeApiRunner {
-    pub async fn new(rcs: RuntimeConfigSetup) -> Self {
+    pub async fn new(rcs: &RuntimeConfigSetup) -> Self {
         let api = UserApi::new(&rcs.config.leetcode_token).await.unwrap();
         LeetcodeApiRunner {
-            rcs,
+            rcs: rcs.clone(),
             api,
         }
     }

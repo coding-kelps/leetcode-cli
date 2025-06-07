@@ -12,7 +12,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let mut rcs = RuntimeConfigSetup::new();
     rcs.status()?;
-    let api_runner = LeetcodeApiRunner::new(rcs).await;
+    let api_runner = LeetcodeApiRunner::new(&rcs).await;
 
     match &cli.command {
         Commands::Info {
@@ -24,9 +24,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             id,
             language,
         } => {
+            let default = &rcs.config.default_language.unwrap();
             let lang = match language {
                 Some(lang) => utils::parse_programming_language(lang)?,
-                None => rcs.config.default_language.clone(),
+                None => utils::parse_programming_language(default)?,
             };
             let start_problem = api_runner.start_problem(*id, lang).await?;
             println!("{}\n\nHappy coding :)", start_problem);
