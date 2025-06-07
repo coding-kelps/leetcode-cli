@@ -4,11 +4,6 @@ pub struct LeetcodeReadmeParser {
     pub raw: String,
 }
 
-enum RegexTarget {
-    Input,
-    Output,
-}
-
 pub struct ProblemTestData {
     pub example_count: usize,
     pub inputs:        Vec<String>,
@@ -27,8 +22,8 @@ impl LeetcodeReadmeParser {
         }
         Ok(ProblemTestData {
             example_count: self.count_examples(),
-            inputs:        self.extract_inputs_outputs(RegexTarget::Input),
-            outputs:       self.extract_inputs_outputs(RegexTarget::Output),
+            inputs:        self.extract_inputs(),
+            outputs:       self.extract_outputs(),
         })
     }
     fn count_examples(&self) -> usize {
@@ -37,11 +32,16 @@ impl LeetcodeReadmeParser {
             .filter(|line| line.starts_with("**Example"))
             .count()
     }
-    fn extract_inputs_outputs(&self, target: RegexTarget) -> Vec<String> {
-        let pattern = match target {
-            RegexTarget::Input => r"(?m)^\s*\*?\*?Input:\*?\*?\s*(.*)$",
-            RegexTarget::Output => r"(?m)^\s*\*?\*?Output:\*?\*?\s*(.*)$",
-        };
+
+    fn extract_inputs(&self) -> Vec<String> {
+        self.extract_from_pattern(r"(?m)^\s*\*?\*?Input:\*?\*?\s*(.*)$")
+    }
+
+    fn extract_outputs(&self) -> Vec<String> {
+        self.extract_from_pattern(r"(?m)^\s*\*?\*?Output:\*?\*?\s*(.*)$")
+    }
+
+    fn extract_from_pattern(&self, pattern: &str) -> Vec<String> {
         let re = Regex::new(pattern).unwrap();
 
         let mut result = Vec::new();
