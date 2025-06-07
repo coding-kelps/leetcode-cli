@@ -49,8 +49,7 @@ impl LeetcodeReadmeParser {
             if let Some(matched) = capture.get(1) {
                 let res = matched
                     .as_str()
-                    .replace('\n', " ")
-                    .replace('\t', " ")
+                    .replace(['\n', '\t'], " ")
                     .trim()
                     .to_string();
                 result.push(res);

@@ -155,19 +155,19 @@ impl LeetcodeApiRunner {
 
         let result = match language {
             ProgrammingLanguage::Rust => Command::new("cargo")
-                .args(&["init", "--name", pb_name, "--vcs", "none"])
+                .args(["init", "--name", pb_name, "--vcs", "none"])
                 .current_dir(problem_dir)
                 .output(),
             ProgrammingLanguage::JavaScript
             | ProgrammingLanguage::TypeScript => Command::new("npm")
-                .args(&["init", "-y"])
+                .args(["init", "-y"])
                 .current_dir(problem_dir)
                 .output(),
             ProgrammingLanguage::Go => {
                 let module_name =
                     format!("leetcode-{}", pb_name.replace("_", "-"));
                 Command::new("go")
-                    .args(&["mod", "init", &module_name])
+                    .args(["mod", "init", &module_name])
                     .current_dir(problem_dir)
                     .output()
             },
