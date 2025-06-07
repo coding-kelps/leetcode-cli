@@ -20,7 +20,7 @@ pub enum Commands {
         id: u32,
 
         #[arg(short = 'l', long = "lang")]
-        language: String,
+        language: Option<String>,
     },
     Test {
         #[arg(short = 'i', long)]

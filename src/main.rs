@@ -24,11 +24,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             id,
             language,
         } => {
-            let language = utils::parse_programming_language(language);
-            println!(
-                "{}\nHappy Coding :)",
-                api_runner.start_problem(*id, language).await?
-            );
+            let lang = match language {
+                Some(lang) => utils::parse_programming_language(lang)?,
+                None => rcs.config.default_language.clone(),
+            };
+            let start_problem = api_runner.start_problem(*id, lang).await?;
+            println!("{}\n\nHappy coding :)", start_problem);
         },
         Commands::Test {
             id,

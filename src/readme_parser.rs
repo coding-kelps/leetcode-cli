@@ -27,8 +27,8 @@ impl LeetcodeReadmeParser {
         }
         Ok(ProblemTestData {
             example_count: self.count_examples(),
-            inputs:        self.extract_examples(RegexTarget::Input),
-            outputs:       self.extract_examples(RegexTarget::Output),
+            inputs:        self.extract_inputs_outputs(RegexTarget::Input),
+            outputs:       self.extract_inputs_outputs(RegexTarget::Output),
         })
     }
     fn count_examples(&self) -> usize {
@@ -37,7 +37,7 @@ impl LeetcodeReadmeParser {
             .filter(|line| line.starts_with("**Example"))
             .count()
     }
-    fn extract_examples(&self, target: RegexTarget) -> Vec<String> {
+    fn extract_inputs_outputs(&self, target: RegexTarget) -> Vec<String> {
         let pattern = match target {
             RegexTarget::Input => r"(?m)^\s*\*?\*?Input:\*?\*?\s*(.*)$",
             RegexTarget::Output => r"(?m)^\s*\*?\*?Output:\*?\*?\s*(.*)$",
