@@ -114,3 +114,165 @@ fn test_392_outputs_1_parse_readme() {
 
     assert_eq!(output, expected, "second output mismatch");
 }
+
+#[test]
+fn test_823_count_example() {
+    let readme_content = std::fs::read_to_string("tests/data/823.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    assert_eq!(
+        problem_data.example_count, 2,
+        "Expected 2 test cases in the readme"
+    );
+}
+
+#[test]
+fn test_823_inputs_0_parse_readme() {
+    let readme_content = std::fs::read_to_string("tests/data/823.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    let input = &problem_data.inputs[0];
+    let expected = "arr = [2,4]";
+    assert_eq!(input, expected, "first input mismatch");
+}
+
+#[test]
+fn test_823_outputs_1_parse_readme() {
+    let readme_content = std::fs::read_to_string("tests/data/823.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    let output = &problem_data.outputs[1];
+    let expected = "7";
+    assert_eq!(output, expected, "second output mismatch");
+}
+
+#[test]
+fn test_1768_count_example() {
+    let readme_content = std::fs::read_to_string("tests/data/1768.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    assert_eq!(
+        problem_data.example_count, 3,
+        "Expected 3 test cases in the readme"
+    );
+}
+
+#[test]
+fn test_1768_inputs_0_parse_readme() {
+    let readme_content = std::fs::read_to_string("tests/data/1768.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    let input = &problem_data.inputs[0];
+    let expected = "word1 = \"abc\", word2 = \"pqr\"";
+    assert_eq!(input, expected, "first input mismatch");
+}
+
+#[test]
+fn test_1768_outputs_1_parse_readme() {
+    let readme_content = std::fs::read_to_string("tests/data/1768.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    let output = &problem_data.outputs[1];
+    let expected = "\"apbqrs\"";
+    assert_eq!(output, expected, "second output mismatch");
+}
+
+#[test]
+fn test_1768_outputs_2_parse_readme() {
+    let readme_content = std::fs::read_to_string("tests/data/1768.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    let output = &problem_data.outputs[2];
+    let expected = "\"apbqcd\"";
+    assert_eq!(output, expected, "3rd output mismatch");
+}
+
+#[test]
+fn test_1004_count_example() {
+    let readme_content = std::fs::read_to_string("tests/data/1004.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    assert_eq!(
+        problem_data.example_count, 2,
+        "Expected 2 test cases in the readme"
+    );
+}
+
+#[test]
+fn test_1004_inputs_0_parse_readme() {
+    let readme_content = std::fs::read_to_string("tests/data/1004.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    let input = &problem_data.inputs[0];
+    let expected = "nums = [1,1,1,0,0,0,1,1,1,1,0], k = 2";
+    assert_eq!(input, expected, "first input mismatch");
+}
+
+#[test]
+fn test_1004_inputs_1_parse_readme() {
+    let readme_content = std::fs::read_to_string("tests/data/1004.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    let input = &problem_data.inputs[1];
+    let expected = "nums = [0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1], k = 3";
+    assert_eq!(input, expected, "first input mismatch");
+}
+
+#[test]
+fn test_1004_outputs_0_parse_readme() {
+    let readme_content = std::fs::read_to_string("tests/data/1004.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    let output = &problem_data.outputs[0];
+    let expected = "6";
+    assert_eq!(output, expected, "second output mismatch");
+}
+
+#[test]
+fn test_1004_outputs_1_parse_readme() {
+    let readme_content = std::fs::read_to_string("tests/data/1004.md")
+        .expect("Failed to read test readme file");
+    let lrp = LeetcodeReadmeParser::new(&readme_content);
+    let result = lrp.parse();
+    assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
+    let problem_data = result.unwrap();
+    let output = &problem_data.outputs[1];
+    let expected = "10";
+    assert_eq!(output, expected, "second output mismatch");
+}
