@@ -32,6 +32,15 @@ pub fn write_to_file(
     fs::write(file_path, content)
 }
 
+/// Writes the README file for the given problem.
+pub(crate) fn write_readme(
+    problem_dir: &Path, id: u32, pb_name: &str, md_desc: &str,
+) -> io::Result<()> {
+    let readme_content =
+        format!("# Problem {}: {}\n\n{}", id, pb_name, md_desc);
+    write_to_file(problem_dir, &format!("{}.md", pb_name), &readme_content)
+}
+
 pub fn parse_programming_language(
     lang: &str,
 ) -> Result<leetcoderustapi::ProgrammingLanguage, std::io::Error> {
@@ -70,34 +79,7 @@ pub fn parse_programming_language(
 }
 
 pub fn get_file_name(lang: &leetcoderustapi::ProgrammingLanguage) -> String {
-    match lang {
-        leetcoderustapi::ProgrammingLanguage::CPP => "main.cpp".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Java => "Main.java".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Python => "main.py".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Python3 => "main.py".to_string(),
-        leetcoderustapi::ProgrammingLanguage::C => "main.c".to_string(),
-        leetcoderustapi::ProgrammingLanguage::CSharp => "Main.cs".to_string(),
-        leetcoderustapi::ProgrammingLanguage::JavaScript => {
-            "main.js".to_string()
-        },
-        leetcoderustapi::ProgrammingLanguage::TypeScript => {
-            "main.ts".to_string()
-        },
-        leetcoderustapi::ProgrammingLanguage::Ruby => "main.rb".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Swift => "main.swift".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Go => "main.go".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Bash => "main.sh".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Scala => "main.scala".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Kotlin => "main.kt".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Rust => "main.rs".to_string(),
-        leetcoderustapi::ProgrammingLanguage::PHP => "main.php".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Racket => "main.rkt".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Erlang => "main.erl".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Elixir => "main.ex".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Dart => "main.dart".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Pandas => "main.py".to_string(),
-        leetcoderustapi::ProgrammingLanguage::React => "main.jsx".to_string(),
-    }
+    format!("main.{}", language_to_string(lang))
 }
 
 pub fn language_to_string(
@@ -128,11 +110,10 @@ pub fn language_to_string(
     }
 }
 
-pub fn extension_programming_language(
+pub fn get_language_from_extension(
     file_name: &str,
 ) -> leetcoderustapi::ProgrammingLanguage {
     let extension = file_name.rsplit('.').next().unwrap_or("").to_lowercase();
-    println!("Detected extension: {}", extension);
     match extension.as_str() {
         "cpp" => leetcoderustapi::ProgrammingLanguage::CPP,
         "java" => leetcoderustapi::ProgrammingLanguage::Java,

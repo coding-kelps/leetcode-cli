@@ -2,6 +2,7 @@ use std::io;
 
 use colored::Colorize;
 use leetcoderustapi::{
+    problem_actions::Problem,
     ProgrammingLanguage,
     UserApi,
 };
@@ -9,12 +10,9 @@ use nanohtml2text::html2text;
 
 use crate::{
     config::RuntimeConfigSetup,
-    utils::{
-        self,
-        ensure_directory_exists,
-        get_file_name,
-        write_to_file,
-    },
+    readme_parser::LeetcodeReadmeParser,
+    test_generator::TestGenerator,
+    utils::*,
 };
 
 pub struct LeetcodeApiRunner {
@@ -79,16 +77,27 @@ impl LeetcodeApiRunner {
     pub async fn start_problem(
         &self, id: u32, language: ProgrammingLanguage,
     ) -> io::Result<String> {
-        let pb = self.api.set_problem_by_id(id).await.unwrap();
+        let pb = self.api.set_problem_by_id(id).await?;
         let pb_desc = pb.description().unwrap();
         let pb_name = pb_desc.name.replace(" ", "_");
         let md_desc = html2md::parse_html(&pb_desc.content);
-
         let problem_dir =
             self.prepare_problem_directory(id, &pb_name, &language)?;
 
-        self.write_readme(&problem_dir, id, &pb_name, &md_desc)?;
-        self.generate_starter_code(&problem_dir, language, &pb)?;
+        let starter_code = self.get_starter_code(&language, &pb)?;
+
+        let test_data =
+            LeetcodeReadmeParser::new(&md_desc).parse().map_err(|e| {
+                io::Error::new(io::ErrorKind::InvalidData, e.to_string())
+            })?;
+        let tests = TestGenerator::new(&starter_code, test_data)
+            .run(&language)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+
+        let file_content = format!("{}\n\n{}", starter_code, tests);
+        write_to_file(&problem_dir, &get_file_name(&language), &file_content)?;
+        write_readme(&problem_dir, id, &pb_name, &md_desc)?;
+
         Ok(format!(
             "Problem {}: {} has been created at {}.",
             id,
@@ -111,36 +120,31 @@ impl LeetcodeApiRunner {
         Ok(problem_dir)
     }
 
-    /// Writes the README file for the given problem.
-    fn write_readme(
-        &self, problem_dir: &std::path::Path, id: u32, pb_name: &str,
-        md_desc: &str,
-    ) -> io::Result<()> {
-        let readme_content =
-            format!("# Problem {}: {}\n\n{}", id, pb_name, md_desc);
-        write_to_file(problem_dir, "README.md", &readme_content)?;
-        Ok(())
-    }
-
     /// Generates starter code for the specified programming language.
-    fn generate_starter_code(
-        &self, problem_dir: &std::path::Path, language: ProgrammingLanguage,
-        pb: &leetcoderustapi::problem_actions::Problem,
-    ) -> io::Result<()> {
-        let file_name = get_file_name(&language);
-        let str_language = utils::language_to_string(&language); // If only ProgrammingLanguage could derive PartialEq
+    fn get_starter_code(
+        &self, language: &ProgrammingLanguage, pb: &Problem,
+    ) -> io::Result<String> {
+        let str_language = language_to_string(&language);
 
-        let starter_code = pb
-            .code_snippets()
-            .expect("No code snippets found.")
+        let code_snippets = pb.code_snippets().ok_or_else(|| {
+            io::Error::new(io::ErrorKind::NotFound, "No code snippets found")
+        })?;
+
+        let starter_code = code_snippets
             .iter()
             .find(|snippet| snippet.langSlug == str_language)
             .map(|snippet| snippet.code.clone())
-            .unwrap_or_else(|| {
-                panic!("No starter code found for the specified language.")
-            });
-        write_to_file(problem_dir, &file_name, &starter_code)?;
-        Ok(())
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::NotFound,
+                    format!(
+                        "No starter code found for language: {}",
+                        str_language
+                    ),
+                )
+            })?;
+
+        Ok(starter_code)
     }
 
     pub async fn test_response(
@@ -149,7 +153,7 @@ impl LeetcodeApiRunner {
         let problem_info = self.api.set_problem_by_id(id).await.unwrap();
         let file_content = std::fs::read_to_string(&path_to_file)
             .expect("Unable to read the file");
-        let language = utils::extension_programming_language(&path_to_file);
+        let language = get_language_from_extension(&path_to_file);
 
         let test_response = problem_info
             .send_test(language, &file_content)
@@ -164,7 +168,7 @@ impl LeetcodeApiRunner {
         let problem_info = self.api.set_problem_by_id(id).await.unwrap();
         let file_content = std::fs::read_to_string(&path_to_file)
             .expect("Unable to read the file");
-        let language = utils::extension_programming_language(&path_to_file);
+        let language = get_language_from_extension(&path_to_file);
 
         let test_response = problem_info
             .send_subm(language, &file_content)
