@@ -159,3 +159,27 @@ pub fn prompt_for_language(
         Ok(trimmed)
     }
 }
+
+pub fn get_extension_from_language(
+    lang: &leetcoderustapi::ProgrammingLanguage,
+) -> String {
+    match lang {
+        leetcoderustapi::ProgrammingLanguage::CPP => "cpp".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Java => "java".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python => "py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python3 => "py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::C => "c".to_string(),
+        leetcoderustapi::ProgrammingLanguage::CSharp => "cs".to_string(),
+        leetcoderustapi::ProgrammingLanguage::JavaScript => "js".to_string(),
+        leetcoderustapi::ProgrammingLanguage::TypeScript => "ts".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Ruby => "rb".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Swift => "swift".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Go => "go".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Bash => "sh".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Scala => "scala".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Kotlin => "kt".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Rust => "rs".to_string(),
+        leetcoderustapi::ProgrammingLanguage::PHP => "php".to_string(),
+        _ => panic!("Unsupported language: {:?}", lang),
+    }
+}
