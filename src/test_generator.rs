@@ -1,5 +1,4 @@
 use leetcoderustapi::ProgrammingLanguage;
-use warp::test;
 
 use crate::{
     code_signature::CodeSignature,
@@ -57,19 +56,18 @@ impl TestGenerator {
         &self, signature: &CodeSignature,
     ) -> Result<String, String> {
         let test_data = &self.test_data;
-        let mut tests = format!("#[cfg(test)]\nmod tests {{\n");
-        tests.push_str("    use super::*; \n\n");
+        let mut tests = format!("#[cfg(test)]\nmod tests {{\n\n");
         for i in 0..test_data.example_count {
             let expect = format!("let expected = {};\n", test_data.outputs[i]);
             let test_call = format!(
-                "Solution::{}({})",
+                "\t\tlet result = Solution::{}({});\n",
                 signature.function_name, test_data.inputs[i]
             );
 
             tests.push_str(&format!(
-                "#[test]\nfn test_case_{}() {{\n    assert_eq!({}, \
-                 {});\n}}\n\n",
-                i, test_call, test_data.outputs[i]
+                "\t#[test]\n\tfn test_case_{}() {{\n\t    \
+                 {}{}\t\tassert_eq!(result, expected);\n\t}}\n\n",
+                i, expect, test_call
             ));
         }
         tests.push_str("}\n");

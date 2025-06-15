@@ -95,8 +95,10 @@ impl LeetcodeApiRunner {
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
 
         let file_content = format!("{}\n\n{}", starter_code, tests);
-        write_to_file(&problem_dir, &get_file_name(&language), &file_content)?;
         write_readme(&problem_dir, id, &pb_name, &md_desc)?;
+        let src_dir = problem_dir.join("src");
+        ensure_directory_exists(&src_dir)?;
+        write_to_file(&src_dir, &get_file_name(&language), &file_content)?;
 
         Ok(format!(
             "Problem {}: {} has been created at {}.",
@@ -189,7 +191,7 @@ impl LeetcodeApiRunner {
 
         let result = match language {
             ProgrammingLanguage::Rust => Command::new("cargo")
-                .args(["init", "--name", pb_name, "--vcs", "none"])
+                .args(["init", "--name", pb_name, "--vcs", "none", "--bin"])
                 .current_dir(problem_dir)
                 .output(),
             ProgrammingLanguage::JavaScript
