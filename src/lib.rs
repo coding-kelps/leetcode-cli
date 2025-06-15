@@ -1,4 +1,5 @@
 pub mod cli;
+pub mod code_signature;
 pub mod config;
 pub mod leetcode_api_runner;
 pub mod readme_parser;

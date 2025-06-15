@@ -79,7 +79,7 @@ pub fn parse_programming_language(
 }
 
 pub fn get_file_name(lang: &leetcoderustapi::ProgrammingLanguage) -> String {
-    format!("main.{}", language_to_string(lang))
+    format!("main.{}", get_extension_from_language(lang))
 }
 
 pub fn language_to_string(
