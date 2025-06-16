@@ -89,58 +89,103 @@ impl CodeSignature {
     fn parse_rust_signature(
         starter_code: &str,
     ) -> Result<CodeSignature, String> {
-        if let Some(impl_start) = starter_code.find("impl ") {
-            let impl_line_end =
-                starter_code[impl_start..].find('{').unwrap_or(0) + impl_start;
-            let impl_line = &starter_code[impl_start..impl_line_end];
-
-            if let Some(struct_name) =
-                impl_line.strip_prefix("impl ").map(|s| s.trim())
-            {
-                if let Some(fn_start) = starter_code.find("pub fn ") {
-                    let fn_end =
-                        starter_code[fn_start..].find('(').unwrap_or(0)
-                            + fn_start;
-                    let method_name = starter_code[fn_start + 7..fn_end].trim();
-                    return Ok(CodeSignature::new_class(
-                        struct_name.to_string(),
-                        method_name.to_string(),
-                    ));
-                }
-            }
-        }
-
         if let Some(start) = starter_code.find("fn ") {
             let end = starter_code[start..].find('(').unwrap_or(0) + start;
             let fn_name = starter_code[start + 3..end].trim().to_string();
+            // let parameters =  starter_code[end + 1..]
+            //     .find(')')
+            //     .map(|p| &starter_code[end + 1..end + p])
+            //     .unwrap_or("")
+            //     .split(',')
+            //     .map(|s| s.trim().to_string())
+            //     .collect::<Vec<String>>();
             return Ok(CodeSignature::new_function(fn_name));
         }
+        Err("No function definition found in Rust code".to_string())
+    }
 
-        pub fn resolve_declaration(
-            lang: &ProgrammingLanguage, variable_name: &str, test_data: &str,
-        ) -> String {
-            match lang {
-                ProgrammingLanguage::Rust => {
-                    resolve_rust_declaration(variable_name, test_data)
+    pub fn resolve_declaration(
+        lang: &ProgrammingLanguage, test_data: &str,
+    ) -> String {
+        match lang {
+            ProgrammingLanguage::Rust => {
+                Self::resolve_rust_declaration(test_data)
+            },
+            ProgrammingLanguage::C => Self::resolve_c_declaration(test_data),
+            _ => panic!("Unsupported language for declaration resolution"),
+        }
+    }
+
+    fn resolve_rust_declaration(test_data: &str) -> String {
+        let trimmed = test_data.trim();
+
+        // Handle string literals
+        if trimmed.starts_with('"') && trimmed.ends_with('"') {
+            return format!("{}.to_string()", trimmed);
+        }
+
+        // Handle arrays/vectors
+        if trimmed.starts_with('[') && trimmed.ends_with(']') {
+            let inner = &trimmed[1..trimmed.len() - 1];
+            let elements = Self::parse_array_elements(inner);
+            let converted_elements: Vec<String> = elements
+                .into_iter()
+                .map(|elem| Self::resolve_rust_declaration(&elem))
+                .collect();
+            return format!("vec![{}]", converted_elements.join(", "));
+        }
+
+        // Handle primitives (numbers, booleans)
+        if trimmed.parse::<i64>().is_ok()
+            || trimmed.parse::<f64>().is_ok()
+            || trimmed == "true"
+            || trimmed == "false"
+        {
+            return trimmed.to_string();
+        }
+
+        // Default case
+        trimmed.to_string()
+    }
+
+    fn parse_array_elements(inner: &str) -> Vec<String> {
+        let mut elements = Vec::new();
+        let mut current = String::new();
+        let mut bracket_depth = 0;
+        let mut in_quotes = false;
+
+        for ch in inner.chars() {
+            match ch {
+                '"' => {
+                    in_quotes = !in_quotes;
+                    current.push(ch);
                 },
-                ProgrammingLanguage::C => {
-                    resolve_c_declaration(variable_name, test_data)
+                '[' if !in_quotes => {
+                    bracket_depth += 1;
+                    current.push(ch);
                 },
-                _ => panic!("Unsupported language for declaration resolution"),
+                ']' if !in_quotes => {
+                    bracket_depth -= 1;
+                    current.push(ch);
+                },
+                ',' if !in_quotes && bracket_depth == 0 => {
+                    if !current.trim().is_empty() {
+                        elements.push(current.trim().to_string());
+                    }
+                    current.clear();
+                },
+                _ => current.push(ch),
             }
         }
 
-        fn resolve_rust_declaration(
-            variable_name: &str, test_data: &str,
-        ) -> String {
-            return format!("let {} = {};", variable_name, test_data);
-        }
-        fn resolve_c_declaration(
-            variable_name: &str, test_data: &str,
-        ) -> String {
-            return format!("{} {} = {};", "int", variable_name, test_data);
+        if !current.trim().is_empty() {
+            elements.push(current.trim().to_string());
         }
 
-        Err("No function or impl block found in Rust code".to_string())
+        elements
+    }
+
+    fn resolve_c_declaration(test_data: &str) -> String {
+        return format!("{}", test_data);
     }
 }

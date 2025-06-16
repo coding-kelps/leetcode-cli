@@ -55,13 +55,21 @@ impl TestGenerator {
     fn generate_rust_tests(
         &self, signature: &CodeSignature,
     ) -> Result<String, String> {
+        let lang = ProgrammingLanguage::Rust;
         let test_data = &self.test_data;
         let mut tests = format!("#[cfg(test)]\nmod tests {{\n\n");
         for i in 0..test_data.example_count {
-            let expect = format!("let expected = {};\n", test_data.outputs[i]);
+            let expect = format!(
+                "let expected = {};\n",
+                CodeSignature::resolve_declaration(
+                    &lang,
+                    &test_data.outputs[i]
+                )
+            );
             let test_call = format!(
                 "\t\tlet result = Solution::{}({});\n",
-                signature.function_name, test_data.inputs[i]
+                signature.function_name,
+                CodeSignature::resolve_declaration(&lang, &test_data.inputs[i])
             );
 
             tests.push_str(&format!(
