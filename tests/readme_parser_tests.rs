@@ -47,7 +47,7 @@ fn test_3467_inputs_0_parse_readme() {
     let problem_data = result.unwrap();
 
     let input = &problem_data.inputs[0];
-    let expected = "nums = [4,3,2,1]";
+    let expected = "[4,3,2,1]";
 
     assert_eq!(input, expected, "first input mismatch");
 }
@@ -94,7 +94,7 @@ fn test_392_inputs_0_parse_readme() {
     let problem_data = result.unwrap();
 
     let input = &problem_data.inputs[0];
-    let expected = "s = \"abc\", t = \"ahbgdc\"";
+    let expected = "\"abc\",\"ahbgdc\"";
 
     assert_eq!(input, expected, "first input mismatch");
 }
@@ -139,7 +139,7 @@ fn test_823_inputs_0_parse_readme() {
     assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
     let problem_data = result.unwrap();
     let input = &problem_data.inputs[0];
-    let expected = "arr = [2,4]";
+    let expected = "[2,4]";
     assert_eq!(input, expected, "first input mismatch");
 }
 
@@ -180,7 +180,7 @@ fn test_1768_inputs_0_parse_readme() {
     assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
     let problem_data = result.unwrap();
     let input = &problem_data.inputs[0];
-    let expected = "word1 = \"abc\", word2 = \"pqr\"";
+    let expected = "\"abc\",\"pqr\"";
     assert_eq!(input, expected, "first input mismatch");
 }
 
@@ -234,7 +234,7 @@ fn test_1004_inputs_0_parse_readme() {
     assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
     let problem_data = result.unwrap();
     let input = &problem_data.inputs[0];
-    let expected = "nums = [1,1,1,0,0,0,1,1,1,1,0], k = 2";
+    let expected = "[1,1,1,0,0,0,1,1,1,1,0],2";
     assert_eq!(input, expected, "first input mismatch");
 }
 
@@ -247,7 +247,7 @@ fn test_1004_inputs_1_parse_readme() {
     assert!(result.is_ok(), "Failed to parse readme: {:?}", result.err());
     let problem_data = result.unwrap();
     let input = &problem_data.inputs[1];
-    let expected = "nums = [0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1], k = 3";
+    let expected = "[0,0,1,1,0,0,1,1,1,0,1,1,0,0,0,1,1,1,1],3";
     assert_eq!(input, expected, "first input mismatch");
 }
 

@@ -47,12 +47,32 @@ impl LeetcodeReadmeParser {
         let mut result = Vec::new();
         for capture in re.captures_iter(&self.raw) {
             if let Some(matched) = capture.get(1) {
-                let res = matched
+                let input = matched
                     .as_str()
                     .replace(['\n', '\t'], " ")
                     .trim()
                     .to_string();
-                result.push(res);
+
+                let trimmed = if input.contains('=') {
+                    input
+                        .split(',')
+                        .filter_map(|part| {
+                            if let Some(eq_pos) = part.find('=') {
+                                Some(part[eq_pos + 1..].trim())
+                            } else {
+                                // Handle continuation of previous array/value
+                                let trimmed_part = part.trim();
+                                (!trimmed_part.is_empty())
+                                    .then_some(trimmed_part)
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                        .join(",")
+                } else {
+                    input.to_string()
+                };
+
+                result.push(trimmed);
             }
         }
         result
