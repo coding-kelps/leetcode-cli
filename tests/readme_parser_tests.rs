@@ -1,4 +1,6 @@
-use leetcode_cli::readme_parser::LeetcodeReadmeParser;
+use leetcode_cli::readme_parser::{
+    LeetcodeReadmeParser, LeetcodeReadmeParserError,
+};
 
 #[test]
 fn new_leetcode_readme_parser() {
@@ -13,12 +15,17 @@ fn test_parse_empty_readme() {
     let empty_readme = String::new();
     let lrp = LeetcodeReadmeParser::new(&empty_readme);
 
-    let result = lrp.parse();
-    assert!(
-        result.is_err(),
-        "Failed to parse empty readme: {:?}",
-        result.err()
-    );
+    match lrp.parse() {
+        Ok(_) => {
+            panic!("Unexpected Ok result when testing empty readme parsing")
+        },
+        Err(e) => {
+            assert!(
+                matches!(e, LeetcodeReadmeParserError::EmptyReadme),
+                "Unexpected error when testing empty readme parsing"
+            );
+        },
+    }
 }
 
 #[test]

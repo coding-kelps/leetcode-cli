@@ -1,20 +1,12 @@
 use std::io;
 
 use colored::Colorize;
-use leetcoderustapi::{
-    ProgrammingLanguage,
-    UserApi,
-};
+use leetcoderustapi::{ProgrammingLanguage, UserApi};
 use nanohtml2text::html2text;
 
 use crate::{
     config::RuntimeConfigSetup,
-    utils::{
-        self,
-        ensure_directory_exists,
-        get_file_name,
-        write_to_file,
-    },
+    utils::{self, ensure_directory_exists, get_file_name, write_to_file},
 };
 
 pub struct LeetcodeApiRunner {

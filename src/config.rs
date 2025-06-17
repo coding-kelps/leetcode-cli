@@ -1,8 +1,6 @@
 use std::{
     fs,
-    io::{
-        self,
-    },
+    io::{self},
     path::PathBuf,
 };
 
@@ -10,17 +8,17 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct ConfigFile {
-    pub leetcode_token:    String,
-    pub default_language:  Option<String>,
+    pub leetcode_token: String,
+    pub default_language: Option<String>,
     pub leetcode_dir_path: Option<PathBuf>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 pub struct RuntimeConfigSetup {
-    pub home_dir:    PathBuf,
-    pub config_dir:  PathBuf,
+    pub home_dir: PathBuf,
+    pub config_dir: PathBuf,
     pub config_file: PathBuf,
-    pub config:      ConfigFile,
+    pub config: ConfigFile,
 }
 
 impl Default for RuntimeConfigSetup {
@@ -42,8 +40,8 @@ impl RuntimeConfigSetup {
             config_dir,
             config_file,
             config: ConfigFile {
-                leetcode_token:    String::new(),
-                default_language:  None,
+                leetcode_token: String::new(),
+                default_language: None,
                 leetcode_dir_path: Some(default_leetcode_dir),
             },
         }

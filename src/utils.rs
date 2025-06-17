@@ -1,10 +1,6 @@
 use std::{
-    fs,
-    io,
-    path::{
-        Path,
-        PathBuf,
-    },
+    fs, io,
+    path::{Path, PathBuf},
 };
 
 /// Ensures that a directory exists, creating it if necessary.

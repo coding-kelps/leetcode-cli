@@ -1,4 +1,5 @@
 use regex::Regex;
+use thiserror;
 
 pub struct LeetcodeReadmeParser {
     pub raw: String,
@@ -6,8 +7,14 @@ pub struct LeetcodeReadmeParser {
 
 pub struct ProblemTestData {
     pub example_count: usize,
-    pub inputs:        Vec<String>,
-    pub outputs:       Vec<String>,
+    pub inputs: Vec<String>,
+    pub outputs: Vec<String>,
+}
+
+#[derive(thiserror::Error, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LeetcodeReadmeParserError {
+    #[error("can't parse empty readme")]
+    EmptyReadme,
 }
 
 impl LeetcodeReadmeParser {
@@ -16,16 +23,18 @@ impl LeetcodeReadmeParser {
             raw: readme.to_string(),
         }
     }
-    pub fn parse(&self) -> Result<ProblemTestData, Box<dyn std::error::Error>> {
+
+    pub fn parse(&self) -> Result<ProblemTestData, LeetcodeReadmeParserError> {
         if self.raw.is_empty() {
-            return Err("Failed to parse empty readme".into());
+            return Err(LeetcodeReadmeParserError::EmptyReadme);
         }
         Ok(ProblemTestData {
             example_count: self.count_examples(),
-            inputs:        self.extract_inputs(),
-            outputs:       self.extract_outputs(),
+            inputs: self.extract_inputs(),
+            outputs: self.extract_outputs(),
         })
     }
+
     fn count_examples(&self) -> usize {
         self.raw
             .lines()
