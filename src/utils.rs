@@ -7,6 +7,8 @@ use std::{
     },
 };
 
+use leetcoderustapi::ProgrammingLanguage;
+
 /// Ensures that a directory exists, creating it if necessary.
 pub fn ensure_directory_exists(path: &Path) -> io::Result<PathBuf> {
     let path = Path::new(&path);
@@ -74,6 +76,7 @@ pub fn get_file_name(lang: &leetcoderustapi::ProgrammingLanguage) -> String {
     format!("main.{}", get_extension_from_language(lang))
 }
 
+/// Converts a programming language enum to its string representation.
 pub fn language_to_string(
     lang: &leetcoderustapi::ProgrammingLanguage,
 ) -> String {
@@ -181,5 +184,32 @@ pub fn get_extension_from_language(
         leetcoderustapi::ProgrammingLanguage::Rust => "rs".to_string(),
         leetcoderustapi::ProgrammingLanguage::PHP => "php".to_string(),
         _ => panic!("Unsupported language: {:?}", lang),
+    }
+}
+
+pub fn prefix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
+    let prefix = match lang {
+        ProgrammingLanguage::Rust => "pub struct Solution;\n\n".to_string(),
+        _ => "".to_string(),
+    };
+    format!("{}\n{}", prefix, file_content)
+}
+
+pub fn postfix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
+    let postfix = match lang {
+        ProgrammingLanguage::Rust => "\n\nfn main() {}\n".to_string(),
+        _ => "".to_string(),
+    };
+    format!("{}\n{}", file_content, postfix)
+}
+
+pub fn inject_default_return_value(
+    starter_code: &str, lang: &ProgrammingLanguage,
+) -> String {
+    match lang {
+        ProgrammingLanguage::Rust => {
+            format!("{}", starter_code)
+        },
+        _ => format!("{}", starter_code),
     }
 }

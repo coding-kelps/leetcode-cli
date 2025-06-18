@@ -75,36 +75,40 @@ impl LeetcodeApiRunner {
     }
 
     pub async fn start_problem(
-        &self, id: u32, language: ProgrammingLanguage,
+        &self, id: u32, lang: ProgrammingLanguage,
     ) -> io::Result<String> {
         let pb = self.api.set_problem_by_id(id).await?;
         let pb_desc = pb.description().unwrap();
         let pb_name = pb_desc.name.replace(" ", "_");
         let md_desc = html2md::parse_html(&pb_desc.content);
-        let problem_dir =
-            self.prepare_problem_directory(id, &pb_name, &language)?;
+        let pb_dir = self.prepare_problem_directory(id, &pb_name, &lang)?;
 
-        let starter_code = self.get_starter_code(&language, &pb)?;
+        let mut starter_code = self.get_starter_code(&lang, &pb)?;
+        starter_code = inject_default_return_value(&starter_code, &lang);
 
         let test_data =
             LeetcodeReadmeParser::new(&md_desc).parse().map_err(|e| {
                 io::Error::new(io::ErrorKind::InvalidData, e.to_string())
             })?;
         let tests = TestGenerator::new(&starter_code, test_data)
-            .run(&language)
+            .run(&lang)
             .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
 
-        let file_content = format!("{}\n\n{}", starter_code, tests);
-        write_readme(&problem_dir, id, &pb_name, &md_desc)?;
-        let src_dir = problem_dir.join("src");
+        let mut file_content = format!("{}\n\n{}", starter_code, tests);
+        file_content = prefix_code(&file_content, &lang);
+        file_content = postfix_code(&file_content, &lang);
+        write_readme(&pb_dir, id, &pb_name, &md_desc)?;
+        let src_dir = pb_dir.join("src");
         ensure_directory_exists(&src_dir)?;
-        write_to_file(&src_dir, &get_file_name(&language), &file_content)?;
+        write_to_file(&src_dir, &get_file_name(&lang), &file_content)?;
 
         Ok(format!(
-            "Problem {}: {} has been created at {}.",
+            "Problem {}: {} has been created at {} with the {} programming \
+             language.",
             id,
             pb_name,
-            problem_dir.display()
+            pb_dir.display(),
+            language_to_string(&lang)
         ))
     }
 
