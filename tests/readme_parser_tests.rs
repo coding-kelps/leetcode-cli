@@ -1,5 +1,6 @@
 use leetcode_cli::readme_parser::{
-    LeetcodeReadmeParser, LeetcodeReadmeParserError,
+    LeetcodeReadmeParser,
+    LeetcodeReadmeParserError,
 };
 
 #[test]

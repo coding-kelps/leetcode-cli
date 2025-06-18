@@ -1,4 +1,7 @@
-use clap::{Parser, Subcommand};
+use clap::{
+    Parser,
+    Subcommand,
+};
 #[derive(Parser, Debug)]
 #[command(version = "0.1.0", about = "A cli to interact with leetcode.")]
 pub struct Cli {
@@ -21,7 +24,7 @@ pub enum Commands {
     },
     Test {
         #[arg(short = 'i', long)]
-        id: u32,
+        id:           u32,
         #[arg(short = 'p', long = "file")]
         path_to_file: String,
     },

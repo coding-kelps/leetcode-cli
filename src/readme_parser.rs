@@ -7,8 +7,8 @@ pub struct LeetcodeReadmeParser {
 
 pub struct ProblemTestData {
     pub example_count: usize,
-    pub inputs: Vec<String>,
-    pub outputs: Vec<String>,
+    pub inputs:        Vec<String>,
+    pub outputs:       Vec<String>,
 }
 
 #[derive(thiserror::Error, Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,8 +30,8 @@ impl LeetcodeReadmeParser {
         }
         Ok(ProblemTestData {
             example_count: self.count_examples(),
-            inputs: self.extract_inputs(),
-            outputs: self.extract_outputs(),
+            inputs:        self.extract_inputs(),
+            outputs:       self.extract_outputs(),
         })
     }
 
