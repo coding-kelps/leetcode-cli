@@ -58,6 +58,7 @@ impl TestGenerator {
         let lang = ProgrammingLanguage::Rust;
         let test_data = &self.test_data;
         let mut tests = format!("#[cfg(test)]\nmod tests {{\n\n");
+        tests.push_str("\tuse super::*;\n\n");
         for i in 0..test_data.example_count {
             let expect = format!(
                 "let expected = {};\n",
