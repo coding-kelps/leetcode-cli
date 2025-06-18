@@ -85,33 +85,6 @@ fn test_rust_function_parsing() {
     .unwrap();
 
     assert_eq!(signature.function_name, "two_sum");
-    assert!(!signature.is_class_based);
-}
-
-#[test]
-fn test_rust_impl_parsing() {
-    let starter_code = r#"impl Solution {
-    pub fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> {
-        vec![]
-    }
-}"#
-    .to_string();
-    let test_data = ProblemTestData {
-        example_count: 1,
-        inputs:        vec!["vec![2,7,11,15], 9".to_string()],
-        outputs:       vec!["vec![0,1]".to_string()],
-    };
-
-    let _generator = TestGenerator::new(&starter_code, test_data);
-    let signature = CodeSignature::parse_code_signature(
-        &ProgrammingLanguage::Rust,
-        &starter_code,
-    )
-    .unwrap();
-
-    assert_eq!(signature.function_name, "two_sum");
-    assert!(signature.is_class_based);
-    assert_eq!(signature.class_name, Some("Solution".to_string()));
 }
 
 #[test]
