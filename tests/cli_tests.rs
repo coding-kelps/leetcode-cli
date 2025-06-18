@@ -28,7 +28,7 @@ fn test_cli_start_command() {
             language,
         } => {
             assert_eq!(id, 1);
-            assert_eq!(language, "rust");
+            assert_eq!(language.unwrap(), "rust");
         },
         _ => panic!("Expected Start command"),
     }

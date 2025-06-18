@@ -23,6 +23,12 @@ pub struct RuntimeConfigSetup {
     pub config:      ConfigFile,
 }
 
+impl Default for RuntimeConfigSetup {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RuntimeConfigSetup {
     pub fn new() -> Self {
         let home_dir =
@@ -87,9 +93,9 @@ impl RuntimeConfigSetup {
         let raw_str = raw.as_ref();
         let mut path = if raw_str == "~" {
             self.home_dir.clone()
-        } else if raw_str.starts_with("~/") {
+        } else if let Some(stripped) = raw_str.strip_prefix("~/") {
             let home = self.home_dir.clone();
-            home.join(&raw_str[2..])
+            home.join(stripped)
         } else {
             PathBuf::from(raw_str)
         };

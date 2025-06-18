@@ -15,15 +15,15 @@ fn assert_language(actual: ProgrammingLanguage, expected: ProgrammingLanguage) {
 fn test_parse_programming_language() {
     // Test valid programming languages
     assert_language(
-        utils::parse_programming_language("rust"),
+        utils::parse_programming_language("rust").unwrap(),
         ProgrammingLanguage::Rust,
     );
     assert_language(
-        utils::parse_programming_language("python3"),
+        utils::parse_programming_language("python3").unwrap(),
         ProgrammingLanguage::Python3,
     );
     assert_language(
-        utils::parse_programming_language("javascript"),
+        utils::parse_programming_language("javascript").unwrap(),
         ProgrammingLanguage::JavaScript,
     );
 }

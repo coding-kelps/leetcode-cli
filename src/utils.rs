@@ -34,31 +34,35 @@ pub fn write_to_file(
 
 pub fn parse_programming_language(
     lang: &str,
-) -> leetcoderustapi::ProgrammingLanguage {
+) -> Result<leetcoderustapi::ProgrammingLanguage, String> {
     match lang.to_ascii_lowercase().as_str() {
-        "cpp" | "c++" => leetcoderustapi::ProgrammingLanguage::CPP,
-        "java" => leetcoderustapi::ProgrammingLanguage::Java,
-        "python" | "py" => leetcoderustapi::ProgrammingLanguage::Python,
-        "python3" | "py3" => leetcoderustapi::ProgrammingLanguage::Python3,
-        "c" => leetcoderustapi::ProgrammingLanguage::C,
-        "csharp" | "c#" => leetcoderustapi::ProgrammingLanguage::CSharp,
-        "javascript" | "js" => leetcoderustapi::ProgrammingLanguage::JavaScript,
-        "typescript" | "ts" => leetcoderustapi::ProgrammingLanguage::TypeScript,
-        "ruby" => leetcoderustapi::ProgrammingLanguage::Ruby,
-        "swift" => leetcoderustapi::ProgrammingLanguage::Swift,
-        "go" | "golang" => leetcoderustapi::ProgrammingLanguage::Go,
-        "bash" | "shell" => leetcoderustapi::ProgrammingLanguage::Bash,
-        "scala" => leetcoderustapi::ProgrammingLanguage::Scala,
-        "kotlin" | "kt" => leetcoderustapi::ProgrammingLanguage::Kotlin,
-        "rust" | "rs" => leetcoderustapi::ProgrammingLanguage::Rust,
-        "php" => leetcoderustapi::ProgrammingLanguage::PHP,
-        "racket" => leetcoderustapi::ProgrammingLanguage::Racket,
-        "erlang" => leetcoderustapi::ProgrammingLanguage::Erlang,
-        "elixir" => leetcoderustapi::ProgrammingLanguage::Elixir,
-        "dart" => leetcoderustapi::ProgrammingLanguage::Dart,
-        "pandas" => leetcoderustapi::ProgrammingLanguage::Pandas,
-        "react" => leetcoderustapi::ProgrammingLanguage::React,
-        _ => panic!("Unsupported language: {}", lang),
+        "cpp" | "c++" => Ok(leetcoderustapi::ProgrammingLanguage::CPP),
+        "java" => Ok(leetcoderustapi::ProgrammingLanguage::Java),
+        "python" | "py" => Ok(leetcoderustapi::ProgrammingLanguage::Python),
+        "python3" | "py3" => Ok(leetcoderustapi::ProgrammingLanguage::Python3),
+        "c" => Ok(leetcoderustapi::ProgrammingLanguage::C),
+        "csharp" | "c#" => Ok(leetcoderustapi::ProgrammingLanguage::CSharp),
+        "javascript" | "js" => {
+            Ok(leetcoderustapi::ProgrammingLanguage::JavaScript)
+        },
+        "typescript" | "ts" => {
+            Ok(leetcoderustapi::ProgrammingLanguage::TypeScript)
+        },
+        "ruby" => Ok(leetcoderustapi::ProgrammingLanguage::Ruby),
+        "swift" => Ok(leetcoderustapi::ProgrammingLanguage::Swift),
+        "go" | "golang" => Ok(leetcoderustapi::ProgrammingLanguage::Go),
+        "bash" | "shell" => Ok(leetcoderustapi::ProgrammingLanguage::Bash),
+        "scala" => Ok(leetcoderustapi::ProgrammingLanguage::Scala),
+        "kotlin" | "kt" => Ok(leetcoderustapi::ProgrammingLanguage::Kotlin),
+        "rust" | "rs" => Ok(leetcoderustapi::ProgrammingLanguage::Rust),
+        "php" => Ok(leetcoderustapi::ProgrammingLanguage::PHP),
+        "racket" => Ok(leetcoderustapi::ProgrammingLanguage::Racket),
+        "erlang" => Ok(leetcoderustapi::ProgrammingLanguage::Erlang),
+        "elixir" => Ok(leetcoderustapi::ProgrammingLanguage::Elixir),
+        "dart" => Ok(leetcoderustapi::ProgrammingLanguage::Dart),
+        "pandas" => Ok(leetcoderustapi::ProgrammingLanguage::Pandas),
+        "react" => Ok(leetcoderustapi::ProgrammingLanguage::React),
+        _ => Err(format!("Unsupported language: {}", lang)),
     }
 }
 
