@@ -1,3 +1,5 @@
+use std::vec;
+
 use leetcode_cli::{
     code_signature::CodeSignature,
     readme_parser::ProblemTestData,
@@ -7,9 +9,8 @@ use leetcoderustapi::ProgrammingLanguage;
 
 #[test]
 fn test_code_signature_function() {
-    let sig = CodeSignature::new_function("two_sum".to_string());
+    let sig = CodeSignature::new_function("two_sum".to_string(), vec![]);
     assert_eq!(sig.function_name, "two_sum");
-    assert!(!sig.is_class_based);
     assert!(sig.class_name.is_none());
 }
 
@@ -18,7 +19,6 @@ fn test_code_signature_class() {
     let sig =
         CodeSignature::new_class("Solution".to_string(), "two_sum".to_string());
     assert_eq!(sig.function_name, "two_sum");
-    assert!(sig.is_class_based);
     assert_eq!(sig.class_name, Some("Solution".to_string()));
 }
 
@@ -39,7 +39,6 @@ fn test_python_function_parsing() {
     .unwrap();
 
     assert_eq!(signature.function_name, "two_sum");
-    assert!(!signature.is_class_based);
 }
 
 #[test]
@@ -62,7 +61,6 @@ fn test_python_class_parsing() {
     .unwrap();
 
     assert_eq!(signature.function_name, "two_sum");
-    assert!(signature.is_class_based);
     assert_eq!(signature.class_name, Some("Solution".to_string()));
 }
 

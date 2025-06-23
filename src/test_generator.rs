@@ -23,7 +23,7 @@ impl TestGenerator {
     ) -> Result<String, String> {
         let mut tests = String::new();
         for i in 0..self.test_data.example_count {
-            let test_call = if signature.is_class_based {
+            let test_call = if signature.class_name.is_some() {
                 if let Some(class_name) = &signature.class_name {
                     format!(
                         "{}().{}({})",
