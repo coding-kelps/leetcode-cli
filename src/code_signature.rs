@@ -4,34 +4,31 @@ use leetcoderustapi::ProgrammingLanguage;
 
 #[derive(Debug, Clone)]
 pub struct CodeSignature {
-    pub function_name:  String,
-    pub class_name:     Option<String>,
-    pub is_class_based: bool,
-    pub parameters:     Vec<String>,
-    pub return_type:    Option<String>,
-    pub methods:        Vec<String>,
+    pub function_name: String,
+    pub class_name:    Option<String>,
+    pub parameters:    Vec<String>,
+    pub return_type:   Option<String>,
+    pub methods:       Vec<String>,
 }
 
 impl CodeSignature {
-    pub fn new_function(name: String) -> Self {
+    pub fn new_function(name: String, params: Vec<String>) -> Self {
         Self {
-            function_name:  name,
-            class_name:     None,
-            is_class_based: false,
-            parameters:     Vec::new(),
-            return_type:    None,
-            methods:        Vec::new(),
+            function_name: name,
+            class_name:    None,
+            parameters:    params,
+            return_type:   None,
+            methods:       Vec::new(),
         }
     }
 
     pub fn new_class(class_name: String, method_name: String) -> Self {
         Self {
-            function_name:  method_name,
-            class_name:     Some(class_name),
-            is_class_based: true,
-            parameters:     Vec::new(),
-            return_type:    None,
-            methods:        Vec::new(),
+            function_name: method_name,
+            class_name:    Some(class_name),
+            parameters:    Vec::new(),
+            return_type:   None,
+            methods:       Vec::new(),
         }
     }
 
@@ -60,7 +57,6 @@ impl CodeSignature {
             if let Some(class_name) =
                 class_line.strip_prefix("class ").map(|s| s.trim())
             {
-                // Look for the main method (usually not __init__)
                 if let Some(def_start) = starter_code.find("def ") {
                     let def_end =
                         starter_code[def_start..].find('(').unwrap_or(0)
@@ -80,7 +76,14 @@ impl CodeSignature {
         if let Some(start) = starter_code.find("def ") {
             let end = starter_code[start..].find('(').unwrap_or(0) + start;
             let fn_name = starter_code[start + 4..end].trim().to_string();
-            return Ok(CodeSignature::new_function(fn_name));
+            let parameters = starter_code[end + 1..]
+                .find(')')
+                .map(|p| &starter_code[end + 1..end + p])
+                .unwrap_or("")
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .collect::<Vec<String>>();
+            return Ok(CodeSignature::new_function(fn_name, parameters));
         }
 
         Err("No function or class definition found in Python code".to_string())
@@ -92,14 +95,14 @@ impl CodeSignature {
         if let Some(start) = starter_code.find("fn ") {
             let end = starter_code[start..].find('(').unwrap_or(0) + start;
             let fn_name = starter_code[start + 3..end].trim().to_string();
-            // let parameters =  starter_code[end + 1..]
-            //     .find(')')
-            //     .map(|p| &starter_code[end + 1..end + p])
-            //     .unwrap_or("")
-            //     .split(',')
-            //     .map(|s| s.trim().to_string())
-            //     .collect::<Vec<String>>();
-            return Ok(CodeSignature::new_function(fn_name));
+            let parameters = starter_code[end + 1..]
+                .find(')')
+                .map(|p| &starter_code[end + 1..end + p])
+                .unwrap_or("")
+                .split(',')
+                .map(|s| s.trim().to_string())
+                .collect::<Vec<String>>();
+            return Ok(CodeSignature::new_function(fn_name, parameters));
         }
         Err("No function definition found in Rust code".to_string())
     }
