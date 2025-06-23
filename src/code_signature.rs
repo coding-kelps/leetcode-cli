@@ -8,7 +8,6 @@ pub struct CodeSignature {
     pub class_name:    Option<String>,
     pub parameters:    Vec<String>,
     pub return_type:   Option<String>,
-    pub methods:       Vec<String>,
 }
 
 impl CodeSignature {
@@ -18,7 +17,6 @@ impl CodeSignature {
             class_name:    None,
             parameters:    params,
             return_type:   None,
-            methods:       Vec::new(),
         }
     }
 
@@ -28,7 +26,6 @@ impl CodeSignature {
             class_name:    Some(class_name),
             parameters:    Vec::new(),
             return_type:   None,
-            methods:       Vec::new(),
         }
     }
 
