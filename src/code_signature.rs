@@ -126,12 +126,31 @@ impl CodeSignature {
     fn resolve_rust_declaration(test_data: &str) -> String {
         let trimmed = test_data.trim();
 
-        // Handle string literals
-        if trimmed.starts_with('"') && trimmed.ends_with('"') {
-            return format!("{}.to_string()", trimmed);
-        }
+        if trimmed.starts_with('"') {
+            let mut end_quote = 1;
+            let chars: Vec<char> = trimmed.chars().collect();
 
-        // Handle arrays/vectors
+            while end_quote < chars.len() {
+                if chars[end_quote] == '"'
+                    && (end_quote == 1 || chars[end_quote - 1] != '\\')
+                {
+                    break;
+                }
+                end_quote += 1;
+            }
+
+            if end_quote >= chars.len() {
+                end_quote = chars.len();
+            } else {
+                end_quote += 1;
+            }
+
+            let string_content = &trimmed[1..end_quote - 1];
+            return format!(
+                "\"{}\".to_string()",
+                string_content.replace('\\', "\\\\")
+            );
+        }
         if trimmed.starts_with('[') && trimmed.ends_with(']') {
             let inner = &trimmed[1..trimmed.len() - 1];
             let elements = Self::parse_array_elements(inner);
@@ -141,17 +160,12 @@ impl CodeSignature {
                 .collect();
             return format!("vec![{}]", converted_elements.join(", "));
         }
-
-        // Handle primitives (numbers, booleans)
         if trimmed.parse::<i64>().is_ok()
-            || trimmed.parse::<f64>().is_ok()
             || trimmed == "true"
             || trimmed == "false"
         {
             return trimmed.to_string();
         }
-
-        // Default case
         trimmed.to_string()
     }
 
