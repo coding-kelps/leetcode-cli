@@ -19,21 +19,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let api_runner = LeetcodeApiRunner::new(&rcs).await?;
 
     match &cli.command {
-        Commands::Info {
-            id,
-        } => {
+        Commands::Info { id } => {
             let mut spin = spin_the_spinner("Fetching problem info...");
             let result = api_runner.get_problem_info(*id).await;
             spin.stop();
             match result {
-                Ok(info) => println!("{}", info),
+                Ok(_) => (),
                 Err(e) => eprintln!("Error fetching problem info: {}", e),
             }
         },
-        Commands::Start {
-            id,
-            language,
-        } => {
+        Commands::Start { id, language } => {
             let default_lang = rcs
                 .config
                 .default_language
@@ -61,33 +56,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let start_problem = api_runner.start_problem(*id, lang).await;
             spin.stop();
             match start_problem {
-                Ok(message) => println!("{}\n\nHappy coding :)", message),
+                Ok(_) => println!("\n\nHappy coding :)"),
                 Err(e) => eprintln!("Error starting problem: {}", e),
             }
         },
-        Commands::Test {
-            id,
-            path_to_file,
-        } => {
+        Commands::Test { id, path_to_file } => {
             let mut spin = spin_the_spinner("Running tests...");
             let test_result =
-                api_runner.test_response(*id, path_to_file.clone()).await;
+                api_runner.test_response(*id, &path_to_file.clone()).await;
             spin.stop();
             match test_result {
-                Ok(result) => println!("Test result: {}", result),
+                Ok(_) => println!("Test result"),
                 Err(e) => eprintln!("Error running tests: {}", e),
             }
         },
-        Commands::Submit {
-            id,
-            path_to_file,
-        } => {
+        Commands::Submit { id, path_to_file } => {
             let mut spin = spin_the_spinner("Submitting solution...");
             let submit_result =
-                api_runner.submit_response(*id, path_to_file.clone()).await;
+                api_runner.submit_response(*id, &path_to_file.clone()).await;
             spin.stop();
             match submit_result {
-                Ok(result) => println!("Submit result: {}", result),
+                Ok(_) => println!("Submit result"),
                 Err(e) => eprintln!("Error submitting solution: {}", e),
             }
         },

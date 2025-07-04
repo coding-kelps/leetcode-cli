@@ -7,6 +7,7 @@ use std::{
     },
 };
 
+use colored::Colorize;
 use leetcoderustapi::ProgrammingLanguage;
 
 /// Ensures that a directory exists, creating it if necessary.
@@ -30,9 +31,8 @@ pub fn write_to_file(
 pub(crate) fn write_readme(
     problem_dir: &Path, id: u32, pb_name: &str, md_desc: &str,
 ) -> io::Result<()> {
-    let readme_content =
-        format!("# Problem {}: {}\n\n{}", id, pb_name, md_desc);
-    write_to_file(problem_dir, &format!("{}.md", pb_name), &readme_content)
+    let content = format!("# Problem {}: {}\n\n{}", id, pb_name, md_desc);
+    write_to_file(problem_dir, &format!("{}.md", pb_name), &content)
 }
 
 pub fn parse_programming_language(
@@ -211,5 +211,14 @@ pub fn inject_default_return_value(
             format!("{}", starter_code)
         },
         _ => format!("{}", starter_code),
+    }
+}
+
+pub fn difficulty_color(difficulty: &str) -> colored::ColoredString {
+    match difficulty {
+        "Easy" => "Easy".green(),
+        "Medium" => "Medium".yellow(),
+        "Hard" => "Hard".red(),
+        _ => "Unknown".normal(),
     }
 }

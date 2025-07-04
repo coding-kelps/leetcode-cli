@@ -1,6 +1,7 @@
 use core::panic;
 
 use leetcoderustapi::ProgrammingLanguage;
+use thiserror;
 
 #[derive(Debug, Clone)]
 pub struct CodeSignature {
@@ -8,6 +9,12 @@ pub struct CodeSignature {
     pub class_name:    Option<String>,
     pub parameters:    Vec<String>,
     pub return_type:   Option<String>,
+}
+
+#[derive(thiserror::Error, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CodeSignatureError {
+    #[error("Error parsing code signature")]
+    ParseError,
 }
 
 impl CodeSignature {
@@ -31,7 +38,7 @@ impl CodeSignature {
 
     pub fn parse_code_signature(
         lang: &ProgrammingLanguage, starter_code: &str,
-    ) -> Result<CodeSignature, String> {
+    ) -> Result<CodeSignature, CodeSignatureError> {
         match lang {
             ProgrammingLanguage::Python => {
                 Self::parse_python_signature(&starter_code)
@@ -39,13 +46,13 @@ impl CodeSignature {
             ProgrammingLanguage::Rust => {
                 Self::parse_rust_signature(&starter_code)
             },
-            _ => Err("Unsupported language".to_string()),
+            _ => Err(CodeSignatureError::ParseError),
         }
     }
 
     fn parse_python_signature(
         starter_code: &str,
-    ) -> Result<CodeSignature, String> {
+    ) -> Result<CodeSignature, CodeSignatureError> {
         if let Some(class_start) = starter_code.find("class ") {
             let class_end = starter_code[class_start..].find(':').unwrap_or(0)
                 + class_start;
@@ -83,12 +90,12 @@ impl CodeSignature {
             return Ok(CodeSignature::new_function(fn_name, parameters));
         }
 
-        Err("No function or class definition found in Python code".to_string())
+        Err(CodeSignatureError::ParseError)
     }
 
     fn parse_rust_signature(
         starter_code: &str,
-    ) -> Result<CodeSignature, String> {
+    ) -> Result<CodeSignature, CodeSignatureError> {
         if let Some(start) = starter_code.find("fn ") {
             let end = starter_code[start..].find('(').unwrap_or(0) + start;
             let fn_name = starter_code[start + 3..end].trim().to_string();
@@ -101,7 +108,7 @@ impl CodeSignature {
                 .collect::<Vec<String>>();
             return Ok(CodeSignature::new_function(fn_name, parameters));
         }
-        Err("No function definition found in Rust code".to_string())
+        Err(CodeSignatureError::ParseError)
     }
 
     pub fn resolve_declaration(

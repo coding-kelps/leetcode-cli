@@ -1,26 +1,44 @@
-use leetcoderustapi::ProgrammingLanguage;
+use leetcoderustapi::ProgrammingLanguage::{
+    self,
+    *,
+};
+use thiserror;
 
 use crate::{
-    code_signature::CodeSignature,
+    code_signature::*,
     readme_parser::ProblemTestData,
 };
-
 pub struct TestGenerator {
     starter_code: String,
     test_data:    ProblemTestData,
 }
 
+#[derive(thiserror::Error, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TestGeneratorError {
+    #[error("Error creating tests")]
+    ProblemTestDataError,
+}
+
+impl From<TestGeneratorError> for std::io::Error {
+    fn from(e: TestGeneratorError) -> Self {
+        std::io::Error::new(std::io::ErrorKind::InvalidData, e)
+    }
+}
+
+impl From<CodeSignatureError> for TestGeneratorError {
+    fn from(_: CodeSignatureError) -> Self {
+        TestGeneratorError::ProblemTestDataError
+    }
+}
+
 impl TestGenerator {
     pub fn new(starter_code: &String, test_data: ProblemTestData) -> Self {
-        TestGenerator {
-            starter_code: starter_code.clone(),
-            test_data,
-        }
+        TestGenerator { starter_code: starter_code.clone(), test_data }
     }
 
     fn generate_python_tests(
         &self, signature: &CodeSignature,
-    ) -> Result<String, String> {
+    ) -> Result<String, TestGeneratorError> {
         let mut tests = String::new();
         for i in 0..self.test_data.example_count {
             let test_call = if signature.class_name.is_some() {
@@ -54,25 +72,26 @@ impl TestGenerator {
 
     fn generate_rust_tests(
         &self, signature: &CodeSignature,
-    ) -> Result<String, String> {
-        let lang = ProgrammingLanguage::Rust;
-        let test_data = &self.test_data;
-        let mut tests = format!("#[cfg(test)]\nmod tests {{\n\n");
-        tests.push_str("\tuse super::*;\n\n");
-        for i in 0..test_data.example_count {
+    ) -> Result<String, TestGeneratorError> {
+        let mut tests =
+            format!("#[cfg(test)]\nmod tests {{\n\n\tuse super::*;\n\n");
+
+        for i in 0..self.test_data.example_count {
             let expect = format!(
                 "let expected = {};\n",
                 CodeSignature::resolve_declaration(
-                    &lang,
-                    &test_data.outputs[i]
+                    &Rust,
+                    &self.test_data.outputs[i]
                 )
             );
             let test_call = format!(
                 "\t\tlet result = Solution::{}({});\n",
                 signature.function_name,
-                CodeSignature::resolve_declaration(&lang, &test_data.inputs[i])
+                CodeSignature::resolve_declaration(
+                    &Rust,
+                    &self.test_data.inputs[i]
+                )
             );
-
             tests.push_str(&format!(
                 "\t#[test]\n\tfn test_case_{}() {{\n\t    \
                  {}{}\t\tassert_eq!(result, expected);\n\t}}\n\n",
@@ -85,16 +104,14 @@ impl TestGenerator {
 
     pub fn run(
         &mut self, lang: &ProgrammingLanguage,
-    ) -> Result<String, String> {
+    ) -> Result<String, TestGeneratorError> {
         let signature =
             CodeSignature::parse_code_signature(lang, &self.starter_code)?;
 
         match lang {
-            ProgrammingLanguage::Rust => self.generate_rust_tests(&signature),
-            ProgrammingLanguage::Python => {
-                self.generate_python_tests(&signature)
-            },
-            _ => Err("Unsupported language".to_string()),
+            Rust => self.generate_rust_tests(&signature),
+            Python => self.generate_python_tests(&signature),
+            _ => Err(TestGeneratorError::ProblemTestDataError),
         }
     }
 }

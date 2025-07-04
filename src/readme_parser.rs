@@ -17,11 +17,15 @@ pub enum LeetcodeReadmeParserError {
     EmptyReadme,
 }
 
+impl From<LeetcodeReadmeParserError> for std::io::Error {
+    fn from(e: LeetcodeReadmeParserError) -> Self {
+        std::io::Error::new(std::io::ErrorKind::InvalidData, e)
+    }
+}
+
 impl LeetcodeReadmeParser {
     pub fn new(readme: &str) -> Self {
-        LeetcodeReadmeParser {
-            raw: readme.to_string(),
-        }
+        LeetcodeReadmeParser { raw: readme.to_string() }
     }
 
     pub fn parse(&self) -> Result<ProblemTestData, LeetcodeReadmeParserError> {
@@ -36,10 +40,7 @@ impl LeetcodeReadmeParser {
     }
 
     fn count_examples(&self) -> usize {
-        self.raw
-            .lines()
-            .filter(|line| line.starts_with("**Example"))
-            .count()
+        self.raw.lines().filter(|line| line.starts_with("**Example")).count()
     }
 
     fn extract_inputs(&self) -> Vec<String> {

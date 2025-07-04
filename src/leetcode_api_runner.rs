@@ -1,4 +1,10 @@
-use std::io;
+use std::{
+    io,
+    path::{
+        Path,
+        PathBuf,
+    },
+};
 
 use colored::Colorize;
 use leetcoderustapi::{
@@ -39,19 +45,14 @@ impl LeetcodeApiRunner {
         })
     }
 
-    pub async fn get_problem_info(&self, id: u32) -> io::Result<String> {
-        let pb = self.api.set_problem_by_id(id).await.unwrap();
+    pub async fn get_problem_info(&self, id: u32) -> io::Result<()> {
+        let pb = self.api.set_problem_by_id(id).await?;
 
-        let title = pb.description().unwrap().name.bold().cyan();
-        let difficulty = match pb.difficulty().as_str() {
-            "Easy" => "Easy".green(),
-            "Medium" => "Medium".yellow(),
-            "Hard" => "Hard".red(),
-            _ => "Unknown".normal(),
-        };
-        let description = html2text(&pb.description().unwrap().content);
+        let title = pb.description()?.name.bold().cyan();
+        let difficulty = difficulty_color(&pb.difficulty());
+        let description = html2text(&pb.description()?.content);
 
-        Ok(format!("{} {}: {}\n{}", id, difficulty, title, description))
+        Ok(println!("{} {}: {}\n{}", id, difficulty, title, description))
     }
 
     /// Fetches the problem name by its ID.
@@ -76,54 +77,48 @@ impl LeetcodeApiRunner {
 
     pub async fn start_problem(
         &self, id: u32, lang: ProgrammingLanguage,
-    ) -> io::Result<String> {
+    ) -> io::Result<()> {
         let pb = self.api.set_problem_by_id(id).await?;
-        let pb_desc = pb.description().unwrap();
+        let pb_desc = pb.description()?;
         let pb_name = pb_desc.name.replace(" ", "_");
         let md_desc = html2md::parse_html(&pb_desc.content);
-        let pb_dir = self.prepare_problem_directory(id, &pb_name, &lang)?;
+        let (pb_dir, src_dir) =
+            self.prepare_problem_dir(id, &pb_name, &lang)?;
 
         let mut starter_code = self.get_starter_code(&lang, &pb)?;
         starter_code = inject_default_return_value(&starter_code, &lang);
 
-        let test_data =
-            LeetcodeReadmeParser::new(&md_desc).parse().map_err(|e| {
-                io::Error::new(io::ErrorKind::InvalidData, e.to_string())
-            })?;
-        let tests = TestGenerator::new(&starter_code, test_data)
-            .run(&lang)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+        let test_data = LeetcodeReadmeParser::new(&md_desc).parse()?;
+        let tests = TestGenerator::new(&starter_code, test_data).run(&lang)?;
 
         let mut file_content = format!("{}\n\n{}", starter_code, tests);
         file_content = prefix_code(&file_content, &lang);
         file_content = postfix_code(&file_content, &lang);
         write_readme(&pb_dir, id, &pb_name, &md_desc)?;
-        let src_dir = pb_dir.join("src");
-        ensure_directory_exists(&src_dir)?;
         write_to_file(&src_dir, &get_file_name(&lang), &file_content)?;
 
-        Ok(format!(
-            "Problem {}: {} has been created at {} with the {} programming \
-             language.",
+        Ok(println!(
+            "{}: {} created at {} in {}.",
             id,
-            pb_name,
+            pb_name.green().bold(),
             pb_dir.display(),
             language_to_string(&lang)
         ))
     }
 
     /// Prepares the problem directory.
-    fn prepare_problem_directory(
+    fn prepare_problem_dir(
         &self, id: u32, pb_name: &str, language: &ProgrammingLanguage,
-    ) -> io::Result<std::path::PathBuf> {
+    ) -> io::Result<(PathBuf, PathBuf)> {
         let leetcode_dir = self.rcs.resolve_leetcode_dir()?;
         let problem_dir = leetcode_dir.join(format!("{}_{}", id, pb_name));
+        let src_dir = problem_dir.join("src");
+
         ensure_directory_exists(&problem_dir)?;
+        ensure_directory_exists(&src_dir)?;
 
-        // Initialize language-specific project structure
         self.initialize_language_project(&problem_dir, pb_name, language)?;
-
-        Ok(problem_dir)
+        Ok((problem_dir, src_dir))
     }
 
     /// Generates starter code for the specified programming language.
@@ -154,41 +149,32 @@ impl LeetcodeApiRunner {
     }
 
     pub async fn test_response(
-        &self, id: u32, path_to_file: String,
-    ) -> io::Result<String> {
-        let problem_info = self.api.set_problem_by_id(id).await.unwrap();
+        &self, id: u32, path_to_file: &String,
+    ) -> io::Result<()> {
+        let problem_info = self.api.set_problem_by_id(id).await?;
         let file_content = std::fs::read_to_string(&path_to_file)
             .expect("Unable to read the file");
         let language = get_language_from_extension(&path_to_file);
 
-        let test_response = problem_info
-            .send_test(language, &file_content)
-            .await
-            .unwrap();
-        Ok(format!("Test response for problem {}: {:#?}", id, test_response))
+        let test_res = problem_info.send_test(language, &file_content).await?;
+        Ok(println!("Test response for problem {}: {:?}", id, test_res))
     }
 
     pub async fn submit_response(
-        &self, id: u32, path_to_file: String,
-    ) -> io::Result<String> {
-        let problem_info = self.api.set_problem_by_id(id).await.unwrap();
+        &self, id: u32, path_to_file: &String,
+    ) -> io::Result<()> {
+        let pb = self.api.set_problem_by_id(id).await?;
         let file_content = std::fs::read_to_string(&path_to_file)
             .expect("Unable to read the file");
         let language = get_language_from_extension(&path_to_file);
 
-        let test_response = problem_info
-            .send_subm(language, &file_content)
-            .await
-            .unwrap();
-        Ok(format!(
-            "Here's your submit response for problem {}: {:#?}",
-            id, test_response
-        ))
+        let sub_res = pb.send_subm(language, &file_content).await?;
+        Ok(println!("{}: submit result {:?}", id, sub_res))
     }
 
     /// Initializes language-specific project structure.
     fn initialize_language_project(
-        &self, problem_dir: &std::path::Path, pb_name: &str,
+        &self, problem_dir: &Path, pb_name: &str,
         language: &ProgrammingLanguage,
     ) -> io::Result<()> {
         use std::process::Command;

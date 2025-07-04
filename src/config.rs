@@ -31,8 +31,7 @@ impl Default for RuntimeConfigSetup {
 
 impl RuntimeConfigSetup {
     pub fn new() -> Self {
-        let home_dir =
-            dirs::home_dir().expect("Unable to determine home directory");
+        let home_dir = dirs::home_dir().expect("no home directory");
         let config_dir = home_dir.join(".config/leetcode-cli");
         let config_file = config_dir.join("config.toml");
         let default_leetcode_dir = home_dir.join("leetcode");
