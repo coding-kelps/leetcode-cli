@@ -155,3 +155,7 @@ pub fn extension_programming_language(
         _ => panic!("Unsupported language: {}", extension),
     }
 }
+
+pub fn spin_the_spinner(message: &str) -> spinners::Spinner {
+    spinners::Spinner::new(spinners::Spinners::Dots12, message.to_string())
+}
