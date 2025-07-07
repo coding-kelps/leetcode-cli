@@ -34,7 +34,7 @@ pub fn write_to_file(
 
 pub fn parse_programming_language(
     lang: &str,
-) -> Result<leetcoderustapi::ProgrammingLanguage, String> {
+) -> Result<leetcoderustapi::ProgrammingLanguage, std::io::Error> {
     match lang.to_ascii_lowercase().as_str() {
         "cpp" | "c++" => Ok(leetcoderustapi::ProgrammingLanguage::CPP),
         "java" => Ok(leetcoderustapi::ProgrammingLanguage::Java),
@@ -62,7 +62,10 @@ pub fn parse_programming_language(
         "dart" => Ok(leetcoderustapi::ProgrammingLanguage::Dart),
         "pandas" => Ok(leetcoderustapi::ProgrammingLanguage::Pandas),
         "react" => Ok(leetcoderustapi::ProgrammingLanguage::React),
-        _ => Err(format!("Unsupported language: {}", lang)),
+        _ => Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            format!("Unsupported language: {}", lang),
+        )),
     }
 }
 
@@ -158,4 +161,19 @@ pub fn extension_programming_language(
 
 pub fn spin_the_spinner(message: &str) -> spinners::Spinner {
     spinners::Spinner::new(spinners::Spinners::Dots12, message.to_string())
+}
+
+pub fn prompt_for_language() -> Result<String, io::Error> {
+    println!(
+        "Please enter a Leetcode programming language (cpp, rust, python, \
+         ...):"
+    );
+    let mut input = String::new();
+    io::stdin().read_line(&mut input)?;
+    let trimmed = input.trim().to_string();
+    if trimmed.is_empty() {
+        Err(io::Error::new(io::ErrorKind::InvalidInput, "No language entered"))
+    } else {
+        Ok(trimmed)
+    }
 }

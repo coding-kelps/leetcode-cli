@@ -2,6 +2,7 @@ use clap::Parser;
 use leetcode_cli::{
     utils::{
         parse_programming_language,
+        prompt_for_language,
         spin_the_spinner,
     },
     Cli,
@@ -33,11 +34,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             id,
             language,
         } => {
-            let default = &rcs.config.default_language.unwrap();
-            let lang = match language {
-                Some(lang) => parse_programming_language(lang)?,
-                None => parse_programming_language(default)?,
+            let default_lang = &rcs
+                .config
+                .default_language
+                .unwrap_or("not found".to_owned());
+            let mut lang = match language {
+                Some(lang) => parse_programming_language(lang),
+                None => parse_programming_language(default_lang),
             };
+            while lang.is_err() {
+                lang = prompt_for_language()
+                    .and_then(|lang| parse_programming_language(&lang));
+            }
+            let lang = lang.unwrap();
             let mut spin = spin_the_spinner("Starting problem setup...");
             let start_problem = api_runner.start_problem(*id, lang).await;
             spin.stop();
