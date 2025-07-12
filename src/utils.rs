@@ -164,7 +164,7 @@ pub fn spin_the_spinner(message: &str) -> spinners::Spinner {
 }
 
 pub fn prompt_for_language(
-    id: &u32, problem_name: &str, available_languages: &Vec<String>,
+    id: &u32, problem_name: &str, available_languages: &[String],
 ) -> Result<String, io::Error> {
     println!(
         "\nPlease enter a valid Leetcode programming language.\nHere is a \

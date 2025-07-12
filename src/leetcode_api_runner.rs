@@ -23,19 +23,22 @@ pub struct LeetcodeApiRunner {
 }
 
 impl LeetcodeApiRunner {
-    pub async fn new(rcs: &RuntimeConfigSetup) -> Self {
-        let api =
-            UserApi::new(&rcs.config.leetcode_token)
-                .await
-                .expect(&format!(
-                    "An error occurred while creating the API client. Check \
-                     your token in your configuration file: \n\n{}\n\n",
-                    rcs.config_file.display()
-                ));
-        LeetcodeApiRunner {
+    pub async fn new(rcs: &RuntimeConfigSetup) -> Result<Self, io::Error> {
+        Ok(LeetcodeApiRunner {
             rcs: rcs.clone(),
-            api,
-        }
+            api: UserApi::new(&rcs.config.leetcode_token).await.map_err(
+                |_| {
+                    io::Error::new(
+                        io::ErrorKind::NotConnected,
+                        format!(
+                            "An error occurred while creating the API client. \
+                             Check your token in your configuration file: {}",
+                            rcs.config_file.display()
+                        ),
+                    )
+                },
+            )?,
+        })
     }
 
     pub async fn get_problem_info(&self, id: u32) -> io::Result<String> {
