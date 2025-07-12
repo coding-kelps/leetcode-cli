@@ -2,6 +2,7 @@ use clap::Parser;
 use leetcode_cli::{
     utils::{
         parse_programming_language,
+        prompt_for_language,
         spin_the_spinner,
     },
     Cli,
@@ -15,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let mut rcs = RuntimeConfigSetup::new();
     rcs.status()?;
-    let api_runner = LeetcodeApiRunner::new(&rcs).await;
+    let api_runner = LeetcodeApiRunner::new(&rcs).await?;
 
     match &cli.command {
         Commands::Info {
@@ -33,11 +34,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             id,
             language,
         } => {
-            let default = &rcs.config.default_language.unwrap();
-            let lang = match language {
-                Some(lang) => parse_programming_language(lang)?,
-                None => parse_programming_language(default)?,
+            let default_lang = rcs
+                .config
+                .default_language
+                .clone()
+                .unwrap_or_else(|| "not found".to_string());
+            let mut lang = match language {
+                Some(lang) => parse_programming_language(lang),
+                None => parse_programming_language(&default_lang),
             };
+            let mut spin = spin_the_spinner("Gathering problem info...");
+            let problem_name = api_runner.get_problem_name(*id).await?;
+            let available_languages =
+                api_runner.get_available_languages(&id).await?;
+            spin.stop();
+            while lang.is_err() {
+                lang = prompt_for_language(
+                    id,
+                    &problem_name,
+                    &available_languages,
+                )
+                .and_then(|lang| parse_programming_language(&lang));
+            }
+            let lang = lang.unwrap();
             let mut spin = spin_the_spinner("Starting problem setup...");
             let start_problem = api_runner.start_problem(*id, lang).await;
             spin.stop();
