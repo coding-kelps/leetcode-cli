@@ -24,7 +24,14 @@ pub struct LeetcodeApiRunner {
 
 impl LeetcodeApiRunner {
     pub async fn new(rcs: &RuntimeConfigSetup) -> Self {
-        let api = UserApi::new(&rcs.config.leetcode_token).await.unwrap();
+        let api =
+            UserApi::new(&rcs.config.leetcode_token)
+                .await
+                .expect(&format!(
+                    "An error occurred while creating the API client. Check \
+                     your token in your configuration file: \n\n{}\n\n",
+                    rcs.config_file.display()
+                ));
         LeetcodeApiRunner {
             rcs: rcs.clone(),
             api,
@@ -44,6 +51,26 @@ impl LeetcodeApiRunner {
         let description = html2text(&pb.description().unwrap().content);
 
         Ok(format!("{} {}: {}\n{}", id, difficulty, title, description))
+    }
+
+    /// Fetches the problem name by its ID.
+    pub async fn get_problem_name(&self, id: u32) -> io::Result<String> {
+        let pb = self.api.set_problem_by_id(id).await.unwrap();
+        Ok(pb.description().unwrap().name.clone())
+    }
+
+    /// Fetches the available languages for a given problem ID.
+    pub async fn get_available_languages(
+        &self, id: &u32,
+    ) -> io::Result<Vec<String>> {
+        let problem = self.api.set_problem_by_id(*id).await?;
+
+        Ok(problem
+            .code_snippets()
+            .expect("No code snippets found.")
+            .iter()
+            .map(|snippet| snippet.langSlug.clone())
+            .collect::<Vec<_>>())
     }
 
     pub async fn start_problem(

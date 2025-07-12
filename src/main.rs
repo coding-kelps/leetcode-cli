@@ -42,9 +42,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Some(lang) => parse_programming_language(lang),
                 None => parse_programming_language(default_lang),
             };
+            let mut spin = spin_the_spinner("Gathering problem info...");
+            let problem_name = api_runner.get_problem_name(*id).await?;
+            let available_languages =
+                api_runner.get_available_languages(&id).await?;
+            spin.stop();
             while lang.is_err() {
-                lang = prompt_for_language()
-                    .and_then(|lang| parse_programming_language(&lang));
+                lang = prompt_for_language(
+                    id,
+                    &problem_name,
+                    &available_languages,
+                )
+                .and_then(|lang| parse_programming_language(&lang));
             }
             let lang = lang.unwrap();
             let mut spin = spin_the_spinner("Starting problem setup...");

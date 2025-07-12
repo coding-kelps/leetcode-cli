@@ -163,10 +163,19 @@ pub fn spin_the_spinner(message: &str) -> spinners::Spinner {
     spinners::Spinner::new(spinners::Spinners::Dots12, message.to_string())
 }
 
-pub fn prompt_for_language() -> Result<String, io::Error> {
+pub fn prompt_for_language(
+    id: &u32, problem_name: &str, available_languages: &Vec<String>,
+) -> Result<String, io::Error> {
     println!(
-        "Please enter a Leetcode programming language (cpp, rust, python, \
-         ...):"
+        "\nPlease enter a valid Leetcode programming language.\nHere is a \
+         list of available languages for the problem {} - {}\n{}",
+        id,
+        problem_name,
+        available_languages
+            .iter()
+            .map(|l| l.to_string())
+            .collect::<Vec<_>>()
+            .join(", ")
     );
     let mut input = String::new();
     io::stdin().read_line(&mut input)?;
