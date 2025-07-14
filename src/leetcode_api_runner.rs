@@ -31,13 +31,15 @@ impl LeetcodeApiRunner {
         Ok(LeetcodeApiRunner {
             rcs: rcs.clone(),
             api: UserApi::new(&rcs.config.leetcode_token).await.map_err(
-                |_| {
+                |e| {
                     io::Error::new(
                         io::ErrorKind::NotConnected,
                         format!(
                             "An error occurred while creating the API client. \
-                             Check your token in your configuration file: {}",
-                            rcs.config_file.display()
+                             Check your token in your configuration file: {}: \
+                             {}",
+                            rcs.config_file.display(),
+                            e,
                         ),
                     )
                 },
@@ -45,14 +47,17 @@ impl LeetcodeApiRunner {
         })
     }
 
-    pub async fn get_problem_info(&self, id: u32) -> io::Result<()> {
+    pub async fn get_problem_info(&self, id: u32) -> io::Result<String> {
         let pb = self.api.set_problem_by_id(id).await?;
 
         let title = pb.description()?.name.bold().cyan();
         let difficulty = difficulty_color(&pb.difficulty());
         let description = html2text(&pb.description()?.content);
 
-        Ok(println!("{} {}: {}\n{}", id, difficulty, title, description))
+        Ok(format!(
+            "\n#{}  -  {}  -  {}\n\n{}",
+            id, difficulty, title, description
+        ))
     }
 
     /// Fetches the problem name by its ID.

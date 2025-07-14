@@ -139,6 +139,10 @@ pub fn spin_the_spinner(message: &str) -> spinners::Spinner {
     spinners::Spinner::new(spinners::Spinners::Dots12, message.to_string())
 }
 
+pub fn stop_and_clear_spinner(mut spinner: spinners::Spinner) {
+    spinner.stop_with_message(String::new());
+}
+
 pub fn prompt_for_language(
     id: &u32, problem_name: &str, available_languages: &[String],
 ) -> Result<String, io::Error> {
