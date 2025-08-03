@@ -24,15 +24,15 @@ pub enum Commands {
     },
     Test {
         #[arg(short = 'i', long)]
-        id:           u32,
+        id:           Option<u32>,
         #[arg(short = 'p', long = "file")]
-        path_to_file: String,
+        path_to_file: Option<String>,
     },
     Submit {
         #[arg(short = 'i', long)]
-        id: u32,
+        id: Option<u32>,
 
         #[arg(short = 'p', long = "file")]
-        path_to_file: String,
+        path_to_file: Option<String>,
     },
 }

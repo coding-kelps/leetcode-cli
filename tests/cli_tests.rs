@@ -36,8 +36,22 @@ fn test_cli_test_command() {
 
     match cli.command {
         Commands::Test { id, path_to_file } => {
-            assert_eq!(id, 1);
-            assert_eq!(path_to_file, "main.rs");
+            assert_eq!(id, Some(1));
+            assert_eq!(path_to_file, Some("main.rs".to_string()));
+        },
+        _ => panic!("Expected Test command"),
+    }
+}
+
+#[test]
+fn test_cli_test_command_no_args() {
+    let args = vec!["leetcode_cli", "test"];
+    let cli = Cli::try_parse_from(args).unwrap();
+
+    match cli.command {
+        Commands::Test { id, path_to_file } => {
+            assert_eq!(id, None);
+            assert_eq!(path_to_file, None);
         },
         _ => panic!("Expected Test command"),
     }
@@ -51,8 +65,22 @@ fn test_cli_submit_command() {
 
     match cli.command {
         Commands::Submit { id, path_to_file } => {
-            assert_eq!(id, 1);
-            assert_eq!(path_to_file, "solution.py");
+            assert_eq!(id, Some(1));
+            assert_eq!(path_to_file, Some("solution.py".to_string()));
+        },
+        _ => panic!("Expected Submit command"),
+    }
+}
+
+#[test]
+fn test_cli_submit_command_no_args() {
+    let args = vec!["leetcode_cli", "submit"];
+    let cli = Cli::try_parse_from(args).unwrap();
+
+    match cli.command {
+        Commands::Submit { id, path_to_file } => {
+            assert_eq!(id, None);
+            assert_eq!(path_to_file, None);
         },
         _ => panic!("Expected Submit command"),
     }

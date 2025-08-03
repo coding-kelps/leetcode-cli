@@ -2,9 +2,23 @@
 
 echo "Running pre-push checks..."
 
+# Check code formatting
+echo "Checking code formatting..."
+if ! cargo +nightly fmt --check; then
+    echo "❌ Code formatting check failed. Please run 'cargo +nightly fmt' and commit the changes."
+    exit 1
+fi
+
+# Lint code
+echo "Running clippy..."
+if ! cargo clippy --all-features -- -D warnings; then
+    echo "❌ Clippy linting failed. Please fix the warnings and commit the changes."
+    exit 1
+fi
+
 # Run tests
 echo "Running cargo test..."
-if ! cargo test; then
+if ! cargo test -- --test-threads=1; then
     echo "❌ Tests failed. Push aborted."
     exit 1
 fi
