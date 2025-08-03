@@ -175,7 +175,7 @@ fn test_resolve_problem_params_with_config() {
     let temp_dir = TempDir::new().unwrap();
     let original_dir = std::env::current_dir().unwrap();
 
-    // Create config in temp dir
+    // Create config in temp dir with Rust language
     let config =
         LocalConfig::new(123, "test_problem".to_string(), "Rust".to_string());
     config.write_to_dir(temp_dir.path()).unwrap();

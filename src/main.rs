@@ -65,7 +65,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     println!("{success_message}");
                     println!("\nHappy coding :)");
                     println!(
-                        "\n(ps: to use localConfig feature, you should \ncd \
+                        "\n(ps: to use local config feature, you should \ncd \
                          {}\n;)",
                         pb_dir.display()
                     );

@@ -107,7 +107,15 @@ impl LocalConfig {
                                 "No file path provided",
                             ));
                         }
-                        Ok((id.unwrap(), path_to_file.unwrap()))
+                        // If we get here, both id and path_to_file must be Some
+                        match (id, path_to_file) {
+                            (Some(id), Some(path)) => Ok((id, path)),
+                            _ => Err(io::Error::new(
+                                io::ErrorKind::Other,
+                                "Unexpected error: id or path_to_file missing \
+                                 after checks",
+                            )),
+                        }
                     },
                 }
             },
