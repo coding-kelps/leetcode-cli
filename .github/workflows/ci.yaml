@@ -29,8 +29,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install nightly toolchain for rustfmt
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
       - name: Check code format
-        run: cargo fmt --all -- --check
+        run: cargo +nightly fmt --all -- --check
   
   clippy:
     name: Lint
