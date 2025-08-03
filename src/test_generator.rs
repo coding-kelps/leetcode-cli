@@ -137,7 +137,8 @@ impl TestGenerator {
             );
             tests.push_str(&format!(
                 "\t#[test]\n\tfn test_case_{i}() {{\n\t    \
-                 {expect}{test_call}\t\tassert_eq!(result, expected);\n\t}}\n\n"
+                 {expect}{test_call}\t\tassert_eq!(result, \
+                 expected);\n\t}}\n\n"
             ));
         }
         tests.push_str("}\n");

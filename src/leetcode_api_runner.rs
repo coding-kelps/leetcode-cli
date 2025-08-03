@@ -54,9 +54,7 @@ impl LeetcodeApiRunner {
         let difficulty = difficulty_color(&pb.difficulty());
         let description = html2text(&pb.description()?.content);
 
-        Ok(format!(
-            "\n#{id}  -  {difficulty}  -  {title}\n\n{description}"
-        ))
+        Ok(format!("\n#{id}  -  {difficulty}  -  {title}\n\n{description}"))
     }
 
     /// Fetches the problem name by its ID.
