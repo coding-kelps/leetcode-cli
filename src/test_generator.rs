@@ -121,14 +121,15 @@ impl TestGenerator {
                     &self.test_data.outputs[i]
                 )
             );
-            
+
             // Split input parameters and convert each one
-            let input_params = self.split_input_parameters(&self.test_data.inputs[i]);
+            let input_params =
+                self.split_input_parameters(&self.test_data.inputs[i]);
             let converted_params: Vec<String> = input_params
                 .iter()
                 .map(|param| CodeSignature::resolve_declaration(&Rust, param))
                 .collect();
-            
+
             let test_call = format!(
                 "\t\tlet result = Solution::{}({});\n",
                 signature.function_name,
