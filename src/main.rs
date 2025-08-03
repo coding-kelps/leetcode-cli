@@ -25,8 +25,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let result = api_runner.get_problem_info(*id).await;
             stop_and_clear_spinner(spin);
             match result {
-                Ok(info) => println!("{}", info),
-                Err(e) => eprintln!("Error fetching problem info: {}", e),
+                Ok(info) => println!("{info}"),
+                Err(e) => eprintln!("Error fetching problem info: {e}"),
             }
         },
         Commands::Start { id, language } => {
@@ -59,12 +59,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             match start_problem {
                 Ok((success_message, _, warning)) => {
                     if let Some(warning) = warning {
-                        eprintln!("{}", warning);
+                        eprintln!("{warning}");
                     }
-                    println!("{}", success_message);
+                    println!("{success_message}");
                     println!("\nHappy coding :)");
                 },
-                Err(e) => eprintln!("Error starting problem: {}", e),
+                Err(e) => eprintln!("Error starting problem: {e}"),
             }
         },
         Commands::Test { id, path_to_file } => {
@@ -74,7 +74,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             stop_and_clear_spinner(spin);
             match test_result {
                 Ok(_) => println!("Test result"),
-                Err(e) => eprintln!("Error running tests: {}", e),
+                Err(e) => eprintln!("Error running tests: {e}"),
             }
         },
         Commands::Submit { id, path_to_file } => {
@@ -84,7 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             stop_and_clear_spinner(spin);
             match submit_result {
                 Ok(_) => println!("Submit result"),
-                Err(e) => eprintln!("Error submitting solution: {}", e),
+                Err(e) => eprintln!("Error submitting solution: {e}"),
             }
         },
     }
