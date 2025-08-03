@@ -42,7 +42,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let spin = spin_the_spinner("Gathering problem info...");
             let problem_name = api_runner.get_problem_name(*id).await?;
             let available_languages =
-                api_runner.get_available_languages(&id).await?;
+                api_runner.get_available_languages(id).await?;
             stop_and_clear_spinner(spin);
             while lang.is_err() {
                 lang = prompt_for_language(

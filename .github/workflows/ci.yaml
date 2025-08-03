@@ -10,19 +10,19 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Cache
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cargo/registry
-          ~/.cargo/git
-          target
-        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-    - name: Build binaries
-      run: cargo build
-    - name: Run tests
-      run: cargo test
+      - uses: actions/checkout@v4
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Build binaries
+        run: cargo build
+      - name: Run tests
+        run: cargo test
 
   fmt:
     name: Format
@@ -35,7 +35,7 @@ jobs:
           components: rustfmt
       - name: Check code format
         run: cargo +nightly fmt --all -- --check
-  
+
   clippy:
     name: Lint
     runs-on: ubuntu-latest

@@ -31,7 +31,7 @@ pub fn write_to_file(
 pub(crate) fn write_readme(
     problem_dir: &Path, id: u32, pb_name: &str, md_desc: &str,
 ) -> io::Result<()> {
-    let content = format!("# Problem {}: {}\n\n{}", id, pb_name, md_desc);
+    let content = format!("# Problem {id}: {pb_name}\n\n{md_desc}");
     write_to_file(problem_dir, &format!("{}.md", pb_name), &content)
 }
 
@@ -194,7 +194,7 @@ pub fn get_extension_from_language(
         leetcoderustapi::ProgrammingLanguage::Kotlin => "kt".to_string(),
         leetcoderustapi::ProgrammingLanguage::Rust => "rs".to_string(),
         leetcoderustapi::ProgrammingLanguage::PHP => "php".to_string(),
-        _ => panic!("Unsupported language: {:?}", lang),
+        _ => panic!("Unsupported language: {lang:?}"),
     }
 }
 
@@ -203,7 +203,7 @@ pub fn prefix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
         ProgrammingLanguage::Rust => "pub struct Solution;\n\n".to_string(),
         _ => "".to_string(),
     };
-    format!("{}\n{}", prefix, file_content)
+    format!("{prefix}\n{file_content}")
 }
 
 pub fn postfix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
@@ -211,7 +211,7 @@ pub fn postfix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
         ProgrammingLanguage::Rust => "\n\nfn main() {}\n".to_string(),
         _ => "".to_string(),
     };
-    format!("{}\n{}", file_content, postfix)
+    format!("{file_content}\n{postfix}")
 }
 
 fn read_rust_ast(starter_code: &str) -> Result<String, io::Error> {
@@ -223,13 +223,13 @@ pub fn inject_default_return_value(
 ) -> String {
     match lang {
         ProgrammingLanguage::Rust => {
-            let ast = read_rust_ast(starter_code).unwrap_or_else(|_| {
+            let _ast = read_rust_ast(starter_code).unwrap_or_else(|_| {
                 panic!("Failed to read Rust AST from starter code")
             });
 
-            format!("{}", starter_code)
+            starter_code.to_string()
         },
-        _ => format!("{}", starter_code),
+        _ => starter_code.to_string(),
     }
 }
 

@@ -32,8 +32,8 @@ impl From<CodeSignatureError> for TestGeneratorError {
 }
 
 impl TestGenerator {
-    pub fn new(starter_code: &String, test_data: ProblemTestData) -> Self {
-        TestGenerator { starter_code: starter_code.clone(), test_data }
+    pub fn new(starter_code: &str, test_data: ProblemTestData) -> Self {
+        TestGenerator { starter_code: starter_code.to_owned(), test_data }
     }
 
     fn split_input_parameters(&self, input: &str) -> Vec<String> {
@@ -111,7 +111,7 @@ impl TestGenerator {
         &self, signature: &CodeSignature,
     ) -> Result<String, TestGeneratorError> {
         let mut tests =
-            format!("#[cfg(test)]\nmod tests {{\n\n\tuse super::*;\n\n");
+            "#[cfg(test)]\nmod tests {\n\n\tuse super::*;\n\n".to_string();
 
         for i in 0..self.test_data.example_count {
             let expect = format!(
@@ -136,9 +136,8 @@ impl TestGenerator {
                 converted_params.join(", ")
             );
             tests.push_str(&format!(
-                "\t#[test]\n\tfn test_case_{}() {{\n\t    \
-                 {}{}\t\tassert_eq!(result, expected);\n\t}}\n\n",
-                i, expect, test_call
+                "\t#[test]\n\tfn test_case_{i}() {{\n\t    \
+                 {expect}{test_call}\t\tassert_eq!(result, expected);\n\t}}\n\n"
             ));
         }
         tests.push_str("}\n");

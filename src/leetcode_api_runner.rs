@@ -13,7 +13,6 @@ use leetcoderustapi::{
     UserApi,
 };
 use nanohtml2text::html2text;
-use toml::to_string;
 
 use crate::{
     config::RuntimeConfigSetup,
@@ -56,8 +55,7 @@ impl LeetcodeApiRunner {
         let description = html2text(&pb.description()?.content);
 
         Ok(format!(
-            "\n#{}  -  {}  -  {}\n\n{}",
-            id, difficulty, title, description
+            "\n#{id}  -  {difficulty}  -  {title}\n\n{description}"
         ))
     }
 
@@ -97,7 +95,7 @@ impl LeetcodeApiRunner {
         let test_data = LeetcodeReadmeParser::new(&md_desc).parse()?;
         let tests = TestGenerator::new(&starter_code, test_data).run(&lang)?;
 
-        let mut file_content = format!("{}\n\n{}", starter_code, tests);
+        let mut file_content = format!("{starter_code}\n\n{tests}");
         file_content = prefix_code(&file_content, &lang);
         file_content = postfix_code(&file_content, &lang);
         write_readme(&pb_dir, id, &pb_name, &md_desc)?;
@@ -119,7 +117,7 @@ impl LeetcodeApiRunner {
         &self, id: u32, pb_name: &str, language: &ProgrammingLanguage,
     ) -> io::Result<(PathBuf, PathBuf, Option<String>)> {
         let leetcode_dir = self.rcs.resolve_leetcode_dir()?;
-        let problem_dir = leetcode_dir.join(format!("{}_{}", id, pb_name));
+        let problem_dir = leetcode_dir.join(format!("{id}_{pb_name}"));
         let src_dir = problem_dir.join("src");
 
         ensure_directory_exists(&problem_dir)?;
@@ -134,7 +132,7 @@ impl LeetcodeApiRunner {
     fn get_starter_code(
         &self, language: &ProgrammingLanguage, pb: &Problem,
     ) -> io::Result<String> {
-        let str_language = language_to_string(&language);
+        let str_language = language_to_string(language);
 
         let code_snippets = pb.code_snippets().ok_or_else(|| {
             io::Error::new(io::ErrorKind::NotFound, "No code snippets found")
@@ -148,8 +146,7 @@ impl LeetcodeApiRunner {
                 io::Error::new(
                     io::ErrorKind::NotFound,
                     format!(
-                        "No starter code found for language: {}",
-                        str_language
+                        "No starter code found for language: {str_language}"
                     ),
                 )
             })?;
@@ -161,24 +158,26 @@ impl LeetcodeApiRunner {
         &self, id: u32, path_to_file: &String,
     ) -> io::Result<()> {
         let problem_info = self.api.set_problem_by_id(id).await?;
-        let file_content = std::fs::read_to_string(&path_to_file)
+        let file_content = std::fs::read_to_string(path_to_file)
             .expect("Unable to read the file");
-        let language = get_language_from_extension(&path_to_file);
+        let language = get_language_from_extension(path_to_file);
 
         let test_res = problem_info.send_test(language, &file_content).await?;
-        Ok(println!("Test response for problem {}: {:?}", id, test_res))
+        println!("Test response for problem {id}: {test_res:?}");
+        Ok(())
     }
 
     pub async fn submit_response(
         &self, id: u32, path_to_file: &String,
     ) -> io::Result<()> {
         let pb = self.api.set_problem_by_id(id).await?;
-        let file_content = std::fs::read_to_string(&path_to_file)
+        let file_content = std::fs::read_to_string(path_to_file)
             .expect("Unable to read the file");
-        let language = get_language_from_extension(&path_to_file);
+        let language = get_language_from_extension(path_to_file);
 
         let sub_res = pb.send_subm(language, &file_content).await?;
-        Ok(println!("{}: submit result {:?}", id, sub_res))
+        println!("{id}: submit result {sub_res:?}");
+        Ok(())
     }
 
     /// Initializes language-specific project structure.

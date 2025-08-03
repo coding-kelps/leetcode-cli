@@ -41,10 +41,10 @@ impl CodeSignature {
     ) -> Result<CodeSignature, CodeSignatureError> {
         match lang {
             ProgrammingLanguage::Python => {
-                Self::parse_python_signature(&starter_code)
+                Self::parse_python_signature(starter_code)
             },
             ProgrammingLanguage::Rust => {
-                Self::parse_rust_signature(&starter_code)
+                Self::parse_rust_signature(starter_code)
             },
             _ => Err(CodeSignatureError::ParseError),
         }
@@ -207,6 +207,6 @@ impl CodeSignature {
     }
 
     fn resolve_c_declaration(test_data: &str) -> String {
-        return format!("{}", test_data);
+        test_data.to_string()
     }
 }
