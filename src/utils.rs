@@ -140,7 +140,14 @@ pub fn spin_the_spinner(message: &str) -> spinners::Spinner {
 }
 
 pub fn stop_and_clear_spinner(mut spinner: spinners::Spinner) {
-    spinner.stop_with_message(String::new());
+    use std::io::{
+        self,
+        Write,
+    };
+
+    spinner.stop();
+    print!("\r\x1b[2K"); // Clear the line
+    io::stdout().flush().unwrap_or(());
 }
 
 pub fn prompt_for_language(
@@ -207,11 +214,19 @@ pub fn postfix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
     format!("{}\n{}", file_content, postfix)
 }
 
+fn read_rust_ast(starter_code: &str) -> Result<String, io::Error> {
+    Ok(starter_code.to_string())
+}
+
 pub fn inject_default_return_value(
     starter_code: &str, lang: &ProgrammingLanguage,
 ) -> String {
     match lang {
         ProgrammingLanguage::Rust => {
+            let ast = read_rust_ast(starter_code).unwrap_or_else(|_| {
+                panic!("Failed to read Rust AST from starter code")
+            });
+
             format!("{}", starter_code)
         },
         _ => format!("{}", starter_code),

@@ -57,7 +57,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let start_problem = api_runner.start_problem(*id, lang).await;
             stop_and_clear_spinner(spin);
             match start_problem {
-                Ok(_) => println!("\n\nHappy coding :)"),
+                Ok((success_message, _, warning)) => {
+                    if let Some(warning) = warning {
+                        eprintln!("{}", warning);
+                    }
+                    println!("{}", success_message);
+                    println!("\n\nHappy coding :)");
+                },
                 Err(e) => eprintln!("Error starting problem: {}", e),
             }
         },

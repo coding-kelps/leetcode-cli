@@ -13,6 +13,7 @@ use leetcoderustapi::{
     UserApi,
 };
 use nanohtml2text::html2text;
+use toml::to_string;
 
 use crate::{
     config::RuntimeConfigSetup,
@@ -82,12 +83,12 @@ impl LeetcodeApiRunner {
 
     pub async fn start_problem(
         &self, id: u32, lang: ProgrammingLanguage,
-    ) -> io::Result<()> {
+    ) -> io::Result<(String, PathBuf, Option<String>)> {
         let pb = self.api.set_problem_by_id(id).await?;
         let pb_desc = pb.description()?;
         let pb_name = pb_desc.name.replace(" ", "_");
         let md_desc = html2md::parse_html(&pb_desc.content);
-        let (pb_dir, src_dir) =
+        let (pb_dir, src_dir, warning) =
             self.prepare_problem_dir(id, &pb_name, &lang)?;
 
         let mut starter_code = self.get_starter_code(&lang, &pb)?;
@@ -102,19 +103,21 @@ impl LeetcodeApiRunner {
         write_readme(&pb_dir, id, &pb_name, &md_desc)?;
         write_to_file(&src_dir, &get_file_name(&lang), &file_content)?;
 
-        Ok(println!(
+        let success_message = format!(
             "{}: {} created at {} in {}.",
             id,
             pb_name.green().bold(),
             pb_dir.display(),
             language_to_string(&lang)
-        ))
+        );
+
+        Ok((success_message, pb_dir, warning))
     }
 
     /// Prepares the problem directory.
     fn prepare_problem_dir(
         &self, id: u32, pb_name: &str, language: &ProgrammingLanguage,
-    ) -> io::Result<(PathBuf, PathBuf)> {
+    ) -> io::Result<(PathBuf, PathBuf, Option<String>)> {
         let leetcode_dir = self.rcs.resolve_leetcode_dir()?;
         let problem_dir = leetcode_dir.join(format!("{}_{}", id, pb_name));
         let src_dir = problem_dir.join("src");
@@ -122,8 +125,9 @@ impl LeetcodeApiRunner {
         ensure_directory_exists(&problem_dir)?;
         ensure_directory_exists(&src_dir)?;
 
-        self.initialize_language_project(&problem_dir, pb_name, language)?;
-        Ok((problem_dir, src_dir))
+        let warning =
+            self.initialize_language_project(&problem_dir, pb_name, language)?;
+        Ok((problem_dir, src_dir, warning))
     }
 
     /// Generates starter code for the specified programming language.
@@ -181,7 +185,7 @@ impl LeetcodeApiRunner {
     fn initialize_language_project(
         &self, problem_dir: &Path, pb_name: &str,
         language: &ProgrammingLanguage,
-    ) -> io::Result<()> {
+    ) -> io::Result<Option<String>> {
         use std::process::Command;
 
         let result = match language {
@@ -202,23 +206,15 @@ impl LeetcodeApiRunner {
                     .current_dir(problem_dir)
                     .output()
             },
-            _ => return Ok(()),
+            _ => return Ok(None),
         };
 
         match result {
             Ok(output) if !output.status.success() => {
-                eprintln!(
-                    "Warning: Failed to initialize project: {}",
-                    String::from_utf8_lossy(&output.stderr)
-                );
+                Ok(Some(String::from_utf8(output.stderr).unwrap()))
             },
-            Err(e) => eprintln!(
-                "Warning: Failed to run initialization command: {}",
-                e
-            ),
-            _ => {},
+            Err(e) => Ok(Some(e.to_string())),
+            _ => Ok(None),
         }
-
-        Ok(())
     }
 }
