@@ -1,7 +1,9 @@
 pub mod cli;
+pub mod code_signature;
 pub mod config;
 pub mod leetcode_api_runner;
 pub mod readme_parser;
+pub mod test_generator;
 pub mod utils;
 
 pub use cli::{

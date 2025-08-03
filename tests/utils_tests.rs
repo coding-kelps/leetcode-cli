@@ -29,18 +29,18 @@ fn test_parse_programming_language() {
 }
 
 #[test]
-fn test_extension_programming_language() {
+fn test_get_language_from_extension() {
     // Test valid extensions to programming languages
     assert_language(
-        utils::extension_programming_language("rs"),
+        utils::get_language_from_extension("rs"),
         ProgrammingLanguage::Rust,
     );
     assert_language(
-        utils::extension_programming_language("py"),
+        utils::get_language_from_extension("py"),
         ProgrammingLanguage::Python3,
     );
     assert_language(
-        utils::extension_programming_language("js"),
+        utils::get_language_from_extension("js"),
         ProgrammingLanguage::JavaScript,
     );
 }

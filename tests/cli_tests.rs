@@ -10,9 +10,7 @@ fn test_cli_info_command() {
     let cli = Cli::try_parse_from(args).unwrap();
 
     match cli.command {
-        Commands::Info {
-            id,
-        } => assert_eq!(id, 1),
+        Commands::Info { id } => assert_eq!(id, 1),
         _ => panic!("Expected Info command"),
     }
 }
@@ -23,10 +21,7 @@ fn test_cli_start_command() {
     let cli = Cli::try_parse_from(args).unwrap();
 
     match cli.command {
-        Commands::Start {
-            id,
-            language,
-        } => {
+        Commands::Start { id, language } => {
             assert_eq!(id, 1);
             assert_eq!(language.unwrap(), "rust");
         },
@@ -40,10 +35,7 @@ fn test_cli_test_command() {
     let cli = Cli::try_parse_from(args).unwrap();
 
     match cli.command {
-        Commands::Test {
-            id,
-            path_to_file,
-        } => {
+        Commands::Test { id, path_to_file } => {
             assert_eq!(id, 1);
             assert_eq!(path_to_file, "main.rs");
         },
@@ -53,21 +45,12 @@ fn test_cli_test_command() {
 
 #[test]
 fn test_cli_submit_command() {
-    let args = vec![
-        "leetcode_cli",
-        "submit",
-        "--id",
-        "1",
-        "--file",
-        "solution.py",
-    ];
+    let args =
+        vec!["leetcode_cli", "submit", "--id", "1", "--file", "solution.py"];
     let cli = Cli::try_parse_from(args).unwrap();
 
     match cli.command {
-        Commands::Submit {
-            id,
-            path_to_file,
-        } => {
+        Commands::Submit { id, path_to_file } => {
             assert_eq!(id, 1);
             assert_eq!(path_to_file, "solution.py");
         },

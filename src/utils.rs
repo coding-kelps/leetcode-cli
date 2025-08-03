@@ -7,16 +7,11 @@ use std::{
     },
 };
 
+use colored::Colorize;
+use leetcoderustapi::ProgrammingLanguage;
+
 /// Ensures that a directory exists, creating it if necessary.
 pub fn ensure_directory_exists(path: &Path) -> io::Result<PathBuf> {
-    // check if the path doesn't have ~, if it does, replace it with the home
-    // dir
-    let home_dir =
-        dirs::home_dir().expect("Unable to determine home directory");
-    let path = path
-        .to_str()
-        .unwrap()
-        .replace("~", home_dir.to_str().unwrap());
     let path = Path::new(&path);
     if !path.exists() {
         std::fs::create_dir_all(path).expect("Unable to create directory");
@@ -30,6 +25,14 @@ pub fn write_to_file(
 ) -> io::Result<()> {
     let file_path = dir.join(file_name);
     fs::write(file_path, content)
+}
+
+/// Writes the README file for the given problem.
+pub(crate) fn write_readme(
+    problem_dir: &Path, id: u32, pb_name: &str, md_desc: &str,
+) -> io::Result<()> {
+    let content = format!("# Problem {id}: {pb_name}\n\n{md_desc}");
+    write_to_file(problem_dir, &format!("{pb_name}.md"), &content)
 }
 
 pub fn parse_programming_language(
@@ -64,42 +67,16 @@ pub fn parse_programming_language(
         "react" => Ok(leetcoderustapi::ProgrammingLanguage::React),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("Unsupported language: {}", lang),
+            format!("Unsupported language: {lang}"),
         )),
     }
 }
 
 pub fn get_file_name(lang: &leetcoderustapi::ProgrammingLanguage) -> String {
-    match lang {
-        leetcoderustapi::ProgrammingLanguage::CPP => "main.cpp".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Java => "Main.java".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Python => "main.py".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Python3 => "main.py".to_string(),
-        leetcoderustapi::ProgrammingLanguage::C => "main.c".to_string(),
-        leetcoderustapi::ProgrammingLanguage::CSharp => "Main.cs".to_string(),
-        leetcoderustapi::ProgrammingLanguage::JavaScript => {
-            "main.js".to_string()
-        },
-        leetcoderustapi::ProgrammingLanguage::TypeScript => {
-            "main.ts".to_string()
-        },
-        leetcoderustapi::ProgrammingLanguage::Ruby => "main.rb".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Swift => "main.swift".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Go => "main.go".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Bash => "main.sh".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Scala => "main.scala".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Kotlin => "main.kt".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Rust => "main.rs".to_string(),
-        leetcoderustapi::ProgrammingLanguage::PHP => "main.php".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Racket => "main.rkt".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Erlang => "main.erl".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Elixir => "main.ex".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Dart => "main.dart".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Pandas => "main.py".to_string(),
-        leetcoderustapi::ProgrammingLanguage::React => "main.jsx".to_string(),
-    }
+    format!("main.{}", get_extension_from_language(lang))
 }
 
+/// Converts a programming language enum to its string representation.
 pub fn language_to_string(
     lang: &leetcoderustapi::ProgrammingLanguage,
 ) -> String {
@@ -128,11 +105,10 @@ pub fn language_to_string(
     }
 }
 
-pub fn extension_programming_language(
+pub fn get_language_from_extension(
     file_name: &str,
 ) -> leetcoderustapi::ProgrammingLanguage {
     let extension = file_name.rsplit('.').next().unwrap_or("").to_lowercase();
-    println!("Detected extension: {}", extension);
     match extension.as_str() {
         "cpp" => leetcoderustapi::ProgrammingLanguage::CPP,
         "java" => leetcoderustapi::ProgrammingLanguage::Java,
@@ -155,12 +131,23 @@ pub fn extension_programming_language(
         "ex" | "exs" => leetcoderustapi::ProgrammingLanguage::Elixir,
         "dart" => leetcoderustapi::ProgrammingLanguage::Dart,
         "jsx" => leetcoderustapi::ProgrammingLanguage::React,
-        _ => panic!("Unsupported language: {}", extension),
+        _ => panic!("Unsupported language: {extension}"),
     }
 }
 
 pub fn spin_the_spinner(message: &str) -> spinners::Spinner {
     spinners::Spinner::new(spinners::Spinners::Dots12, message.to_string())
+}
+
+pub fn stop_and_clear_spinner(mut spinner: spinners::Spinner) {
+    use std::io::{
+        self,
+        Write,
+    };
+
+    spinner.stop();
+    print!("\r\x1b[2K"); // Clear the line
+    io::stdout().flush().unwrap_or(());
 }
 
 pub fn prompt_for_language(
@@ -184,5 +171,73 @@ pub fn prompt_for_language(
         Err(io::Error::new(io::ErrorKind::InvalidInput, "No language entered"))
     } else {
         Ok(trimmed)
+    }
+}
+
+pub fn get_extension_from_language(
+    lang: &leetcoderustapi::ProgrammingLanguage,
+) -> String {
+    match lang {
+        leetcoderustapi::ProgrammingLanguage::CPP => "cpp".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Java => "java".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python => "py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python3 => "py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::C => "c".to_string(),
+        leetcoderustapi::ProgrammingLanguage::CSharp => "cs".to_string(),
+        leetcoderustapi::ProgrammingLanguage::JavaScript => "js".to_string(),
+        leetcoderustapi::ProgrammingLanguage::TypeScript => "ts".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Ruby => "rb".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Swift => "swift".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Go => "go".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Bash => "sh".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Scala => "scala".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Kotlin => "kt".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Rust => "rs".to_string(),
+        leetcoderustapi::ProgrammingLanguage::PHP => "php".to_string(),
+        _ => panic!("Unsupported language: {lang:?}"),
+    }
+}
+
+pub fn prefix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
+    let prefix = match lang {
+        ProgrammingLanguage::Rust => "pub struct Solution;\n\n".to_string(),
+        _ => "".to_string(),
+    };
+    format!("{prefix}\n{file_content}")
+}
+
+pub fn postfix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
+    let postfix = match lang {
+        ProgrammingLanguage::Rust => "\n\nfn main() {}\n".to_string(),
+        _ => "".to_string(),
+    };
+    format!("{file_content}\n{postfix}")
+}
+
+fn read_rust_ast(starter_code: &str) -> Result<String, io::Error> {
+    Ok(starter_code.to_string())
+}
+
+pub fn inject_default_return_value(
+    starter_code: &str, lang: &ProgrammingLanguage,
+) -> String {
+    match lang {
+        ProgrammingLanguage::Rust => {
+            let _ast = read_rust_ast(starter_code).unwrap_or_else(|_| {
+                panic!("Failed to read Rust AST from starter code")
+            });
+
+            starter_code.to_string()
+        },
+        _ => starter_code.to_string(),
+    }
+}
+
+pub fn difficulty_color(difficulty: &str) -> colored::ColoredString {
+    match difficulty {
+        "Easy" => "Easy".green(),
+        "Medium" => "Medium".yellow(),
+        "Hard" => "Hard".red(),
+        _ => "Unknown".normal(),
     }
 }
