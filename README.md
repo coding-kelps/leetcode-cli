@@ -72,7 +72,7 @@ leetcode_dir_path="~/leetcode" # where to store the downloaded problems
 
 ## Cookie
 
-To obtain your LeetCode token, follow these steps:  
+To obtain your LeetCode token, follow these steps:
 Login to LeetCode and obtain the csrftoken from the cookie value.
 
 - After logging in, right-click on the page and press Inspect.

@@ -1,0 +1,13 @@
+#!/bin/sh
+
+echo "Running pre-push checks..."
+
+# Run tests
+echo "Running cargo test..."
+if ! cargo test; then
+    echo "❌ Tests failed. Push aborted."
+    exit 1
+fi
+
+echo "✅ All pre-push checks passed!"
+exit 0
