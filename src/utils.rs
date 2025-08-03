@@ -32,7 +32,7 @@ pub(crate) fn write_readme(
     problem_dir: &Path, id: u32, pb_name: &str, md_desc: &str,
 ) -> io::Result<()> {
     let content = format!("# Problem {id}: {pb_name}\n\n{md_desc}");
-    write_to_file(problem_dir, &format!("{}.md", pb_name), &content)
+    write_to_file(problem_dir, &format!("{pb_name}.md"), &content)
 }
 
 pub fn parse_programming_language(
@@ -67,7 +67,7 @@ pub fn parse_programming_language(
         "react" => Ok(leetcoderustapi::ProgrammingLanguage::React),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidInput,
-            format!("Unsupported language: {}", lang),
+            format!("Unsupported language: {lang}"),
         )),
     }
 }
@@ -131,7 +131,7 @@ pub fn get_language_from_extension(
         "ex" | "exs" => leetcoderustapi::ProgrammingLanguage::Elixir,
         "dart" => leetcoderustapi::ProgrammingLanguage::Dart,
         "jsx" => leetcoderustapi::ProgrammingLanguage::React,
-        _ => panic!("Unsupported language: {}", extension),
+        _ => panic!("Unsupported language: {extension}"),
     }
 }
 
