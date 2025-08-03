@@ -86,6 +86,23 @@ fn test_rust_function_parsing() {
 }
 
 #[test]
+fn test_rust_multiple_arrays_parsing() {
+    let starter_code = "fn find_median_sorted_arrays(nums1: Vec<i32>, nums2: Vec<i32>) -> f64 {\n    0.0\n}".to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[1, 3],[2]".to_string()],
+        outputs:       vec!["2.0".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
+
+    // Check that both arrays have vec! macro
+    assert!(result.contains("vec![1, 3], vec![2]"));
+    assert!(!result.contains("vec![1, 3],[2]")); // Should not have this invalid syntax
+}
+
+#[test]
 fn test_python_test_generation_function() {
     let starter_code = "def two_sum(nums, target):\n    pass".to_string();
     let test_data = ProblemTestData {

@@ -62,7 +62,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         eprintln!("{}", warning);
                     }
                     println!("{}", success_message);
-                    println!("\n\nHappy coding :)");
+                    println!("\nHappy coding :)");
                 },
                 Err(e) => eprintln!("Error starting problem: {}", e),
             }

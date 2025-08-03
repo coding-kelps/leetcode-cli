@@ -104,7 +104,7 @@ impl LeetcodeApiRunner {
         write_to_file(&src_dir, &get_file_name(&lang), &file_content)?;
 
         let success_message = format!(
-            "{}: {} created at {} in {}.",
+            "{}: {} created at \n{}\nin {}.",
             id,
             pb_name.green().bold(),
             pb_dir.display(),

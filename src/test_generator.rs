@@ -36,6 +36,43 @@ impl TestGenerator {
         TestGenerator { starter_code: starter_code.clone(), test_data }
     }
 
+    fn split_input_parameters(&self, input: &str) -> Vec<String> {
+        let mut parameters = Vec::new();
+        let mut current = String::new();
+        let mut bracket_depth = 0;
+        let mut in_quotes = false;
+
+        for ch in input.chars() {
+            match ch {
+                '"' => {
+                    in_quotes = !in_quotes;
+                    current.push(ch);
+                },
+                '[' if !in_quotes => {
+                    bracket_depth += 1;
+                    current.push(ch);
+                },
+                ']' if !in_quotes => {
+                    bracket_depth -= 1;
+                    current.push(ch);
+                },
+                ',' if !in_quotes && bracket_depth == 0 => {
+                    if !current.trim().is_empty() {
+                        parameters.push(current.trim().to_string());
+                    }
+                    current.clear();
+                },
+                _ => current.push(ch),
+            }
+        }
+
+        if !current.trim().is_empty() {
+            parameters.push(current.trim().to_string());
+        }
+
+        parameters
+    }
+
     fn generate_python_tests(
         &self, signature: &CodeSignature,
     ) -> Result<String, TestGeneratorError> {
@@ -84,13 +121,18 @@ impl TestGenerator {
                     &self.test_data.outputs[i]
                 )
             );
+            
+            // Split input parameters and convert each one
+            let input_params = self.split_input_parameters(&self.test_data.inputs[i]);
+            let converted_params: Vec<String> = input_params
+                .iter()
+                .map(|param| CodeSignature::resolve_declaration(&Rust, param))
+                .collect();
+            
             let test_call = format!(
                 "\t\tlet result = Solution::{}({});\n",
                 signature.function_name,
-                CodeSignature::resolve_declaration(
-                    &Rust,
-                    &self.test_data.inputs[i]
-                )
+                converted_params.join(", ")
             );
             tests.push_str(&format!(
                 "\t#[test]\n\tfn test_case_{}() {{\n\t    \
