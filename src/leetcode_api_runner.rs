@@ -16,6 +16,7 @@ use nanohtml2text::html2text;
 
 use crate::{
     config::RuntimeConfigSetup,
+    local_config::LocalConfig,
     readme_parser::LeetcodeReadmeParser,
     test_generator::TestGenerator,
     utils::*,
@@ -99,6 +100,11 @@ impl LeetcodeApiRunner {
         write_readme(&pb_dir, id, &pb_name, &md_desc)?;
         write_to_file(&src_dir, &get_file_name(&lang), &file_content)?;
 
+        // Create local config file
+        let local_config =
+            LocalConfig::new(id, pb_name.clone(), language_to_string(&lang));
+        local_config.write_to_dir(&pb_dir)?;
+
         let success_message = format!(
             "{}: {} created at \n{}\nin {}.",
             id,
@@ -154,15 +160,14 @@ impl LeetcodeApiRunner {
 
     pub async fn test_response(
         &self, id: u32, path_to_file: &String,
-    ) -> io::Result<()> {
+    ) -> io::Result<String> {
         let problem_info = self.api.set_problem_by_id(id).await?;
         let file_content = std::fs::read_to_string(path_to_file)
             .expect("Unable to read the file");
         let language = get_language_from_extension(path_to_file);
 
         let test_res = problem_info.send_test(language, &file_content).await?;
-        println!("Test response for problem {id}: {test_res:?}");
-        Ok(())
+        Ok(format!("Test response for problem {id}: \n{test_res:#?}"))
     }
 
     pub async fn submit_response(

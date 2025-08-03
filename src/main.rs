@@ -9,6 +9,7 @@ use leetcode_cli::{
     Cli,
     Commands,
     LeetcodeApiRunner,
+    LocalConfig,
     RuntimeConfigSetup,
 };
 
@@ -57,30 +58,41 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let start_problem = api_runner.start_problem(*id, lang).await;
             stop_and_clear_spinner(spin);
             match start_problem {
-                Ok((success_message, _, warning)) => {
+                Ok((success_message, pb_dir, warning)) => {
                     if let Some(warning) = warning {
                         eprintln!("{warning}");
                     }
                     println!("{success_message}");
                     println!("\nHappy coding :)");
+                    println!(
+                        "\n(ps: to use localConfig feature, you should \ncd \
+                         {}\n;)",
+                        pb_dir.display()
+                    );
                 },
                 Err(e) => eprintln!("Error starting problem: {e}"),
             }
         },
         Commands::Test { id, path_to_file } => {
+            let (problem_id, file_path) =
+                LocalConfig::resolve_problem_params(*id, path_to_file.clone())?;
+
             let spin = spin_the_spinner("Running tests...");
             let test_result =
-                api_runner.test_response(*id, &path_to_file.clone()).await;
+                api_runner.test_response(problem_id, &file_path).await;
             stop_and_clear_spinner(spin);
             match test_result {
-                Ok(_) => println!("Test result"),
-                Err(e) => eprintln!("Error running tests: {e}"),
+                Ok(message) => println!("{message}"),
+                Err(e) => eprintln!("Error running tests:\n{e}"),
             }
         },
         Commands::Submit { id, path_to_file } => {
+            let (problem_id, file_path) =
+                LocalConfig::resolve_problem_params(*id, path_to_file.clone())?;
+
             let spin = spin_the_spinner("Submitting solution...");
             let submit_result =
-                api_runner.submit_response(*id, &path_to_file.clone()).await;
+                api_runner.submit_response(problem_id, &file_path).await;
             stop_and_clear_spinner(spin);
             match submit_result {
                 Ok(_) => println!("Submit result"),
