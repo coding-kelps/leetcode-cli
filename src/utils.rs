@@ -135,6 +135,30 @@ pub fn get_language_from_extension(
     }
 }
 
+pub fn get_extension_from_language(
+    lang: &leetcoderustapi::ProgrammingLanguage,
+) -> String {
+    match lang {
+        leetcoderustapi::ProgrammingLanguage::CPP => "cpp".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Java => "java".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python => "py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python3 => "py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::C => "c".to_string(),
+        leetcoderustapi::ProgrammingLanguage::CSharp => "cs".to_string(),
+        leetcoderustapi::ProgrammingLanguage::JavaScript => "js".to_string(),
+        leetcoderustapi::ProgrammingLanguage::TypeScript => "ts".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Ruby => "rb".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Swift => "swift".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Go => "go".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Bash => "sh".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Scala => "scala".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Kotlin => "kt".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Rust => "rs".to_string(),
+        leetcoderustapi::ProgrammingLanguage::PHP => "php".to_string(),
+        _ => panic!("Unsupported language: {lang:?}"),
+    }
+}
+
 pub fn spin_the_spinner(message: &str) -> spinners::Spinner {
     spinners::Spinner::new(spinners::Spinners::Dots12, message.to_string())
 }
@@ -171,30 +195,6 @@ pub fn prompt_for_language(
         Err(io::Error::new(io::ErrorKind::InvalidInput, "No language entered"))
     } else {
         Ok(trimmed)
-    }
-}
-
-pub fn get_extension_from_language(
-    lang: &leetcoderustapi::ProgrammingLanguage,
-) -> String {
-    match lang {
-        leetcoderustapi::ProgrammingLanguage::CPP => "cpp".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Java => "java".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Python => "py".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Python3 => "py".to_string(),
-        leetcoderustapi::ProgrammingLanguage::C => "c".to_string(),
-        leetcoderustapi::ProgrammingLanguage::CSharp => "cs".to_string(),
-        leetcoderustapi::ProgrammingLanguage::JavaScript => "js".to_string(),
-        leetcoderustapi::ProgrammingLanguage::TypeScript => "ts".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Ruby => "rb".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Swift => "swift".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Go => "go".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Bash => "sh".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Scala => "scala".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Kotlin => "kt".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Rust => "rs".to_string(),
-        leetcoderustapi::ProgrammingLanguage::PHP => "php".to_string(),
-        _ => panic!("Unsupported language: {lang:?}"),
     }
 }
 
@@ -239,5 +239,102 @@ pub fn difficulty_color(difficulty: &str) -> colored::ColoredString {
         "Medium" => "Medium".yellow(),
         "Hard" => "Hard".red(),
         _ => "Unknown".normal(),
+    }
+}
+
+/// Preprocesses file content before sending to LeetCode by removing local
+/// compilation helpers
+pub fn preprocess_code(
+    content: &str, language: &ProgrammingLanguage,
+) -> String {
+    match language {
+        ProgrammingLanguage::Rust => preprocess_rust_content(content),
+        // For other languages, return as-is for now
+        _ => content.to_string(),
+    }
+}
+
+/// Removes pub struct Solution; from the top of the file
+fn preprocess_rust_content(content: &str) -> String {
+    let n = delete_line_content(content, "pub struct Solution;");
+    remove_main(&n)
+}
+fn remove_main(content: &str) -> String {
+    let mut c = vec![];
+
+    for line in content.lines() {
+        if line.contains("fn main() {") {
+            break;
+        }
+        c.push(line);
+    }
+    c.join("\n")
+}
+
+fn delete_line_content(content: &str, target: &str) -> String {
+    content
+        .lines()
+        .filter(|line| line.trim() != target)
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// Find the nearest Cargo project root (directory containing Cargo.toml)
+/// starting from `start_dir` and walking up.
+fn find_manifest_dir(start_dir: &Path) -> Option<PathBuf> {
+    for dir in start_dir.ancestors() {
+        let candidate = dir.join("Cargo.toml");
+        if candidate.is_file() {
+            return Some(dir.to_path_buf());
+        }
+    }
+    None
+}
+
+/// Runs local compilation check before sending to LeetCode
+pub async fn run_local_check(
+    path_to_file: &str, language: &ProgrammingLanguage,
+) -> io::Result<String> {
+    use std::process::Command;
+
+    match language {
+        ProgrammingLanguage::Rust => {
+            let file_path = Path::new(path_to_file);
+
+            // If within a Cargo project, run `cargo check` at the project root
+            if let Some(parent) = file_path.parent() {
+                if let Some(manifest_dir) = find_manifest_dir(parent) {
+                    let output = Command::new("cargo")
+                        .args(["check", "--quiet"])
+                        .current_dir(&manifest_dir)
+                        .output()?;
+
+                    if !output.status.success() {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        return Ok(format!("❌ Local check failed:\n{stderr}"));
+                    }
+
+                    return Ok("✅ Local compilation passed!".to_string());
+                }
+            }
+
+            // Fallback: compile the single file directly with rustc
+            let output = Command::new("rustc")
+                .args([
+                    "--edition=2021",
+                    "--emit=metadata",
+                    "--crate-type=bin",
+                    path_to_file,
+                ])
+                .output()?;
+
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                return Ok(format!("❌ Compilation failed:\n{stderr}"));
+            }
+
+            Ok("✅ Local compilation passed!".to_string())
+        },
+        _ => Ok(format!("⚠️ Local check not implemented for {language:?}",)),
     }
 }

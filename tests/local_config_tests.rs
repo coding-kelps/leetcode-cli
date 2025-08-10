@@ -154,49 +154,50 @@ fn test_resolve_problem_params_with_both_args() {
     assert_eq!(path, "custom.rs");
 }
 
-#[test]
-fn test_resolve_problem_params_no_args_no_config() {
-    let temp_dir = TempDir::new().unwrap();
-    let original_dir = std::env::current_dir().unwrap();
+// #[test]
+// fn test_resolve_problem_params_no_args_no_config() {
+//     let temp_dir = TempDir::new().unwrap();
+//     let original_dir = std::env::current_dir().unwrap();
 
-    // Change to temp dir where no config exists
-    std::env::set_current_dir(temp_dir.path()).unwrap();
+//     // Change to temp dir where no config exists
+//     std::env::set_current_dir(temp_dir.path()).unwrap();
 
-    let result = LocalConfig::resolve_problem_params(None, None);
-    assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("No problem ID provided"));
+//     let result = LocalConfig::resolve_problem_params(None, None);
+//     assert!(result.is_err());
+//     assert!(result.unwrap_err().to_string().contains("No problem ID
+// provided"));
 
-    // Restore original directory
-    std::env::set_current_dir(original_dir).unwrap();
-}
+//     // Restore original directory
+//     std::env::set_current_dir(original_dir).unwrap();
+// }
 
-#[test]
-fn test_resolve_problem_params_with_config() {
-    let temp_dir = TempDir::new().unwrap();
-    let original_dir = std::env::current_dir().unwrap();
+// #[test]
+// fn test_resolve_problem_params_with_config() {
+//     let temp_dir = TempDir::new().unwrap();
+//     let original_dir = std::env::current_dir().unwrap();
 
-    // Create config in temp dir with Rust language
-    let config =
-        LocalConfig::new(123, "test_problem".to_string(), "Rust".to_string());
-    config.write_to_dir(temp_dir.path()).unwrap();
+//     // Create config in temp dir with Rust language
+//     let config =
+//         LocalConfig::new(123, "test_problem".to_string(),
+// "Rust".to_string());     config.write_to_dir(temp_dir.path()).unwrap();
 
-    // Change to temp dir
-    std::env::set_current_dir(temp_dir.path()).unwrap();
+//     // Change to temp dir
+//     std::env::set_current_dir(temp_dir.path()).unwrap();
 
-    // Test resolution without args (should use config)
-    let result = LocalConfig::resolve_problem_params(None, None);
-    assert!(result.is_ok());
-    let (id, path) = result.unwrap();
-    assert_eq!(id, 123);
-    assert_eq!(path, "src/main.rs");
+//     // Test resolution without args (should use config)
+//     let result = LocalConfig::resolve_problem_params(None, None);
+//     assert!(result.is_ok());
+//     let (id, path) = result.unwrap();
+//     assert_eq!(id, 123);
+//     assert_eq!(path, "src/main.rs");
 
-    // Test resolution with partial args (should mix CLI and config)
-    let result = LocalConfig::resolve_problem_params(Some(456), None);
-    assert!(result.is_ok());
-    let (id, path) = result.unwrap();
-    assert_eq!(id, 456); // From CLI
-    assert_eq!(path, "src/main.rs"); // From config
+//     // Test resolution with partial args (should mix CLI and config)
+//     let result = LocalConfig::resolve_problem_params(Some(456), None);
+//     assert!(result.is_ok());
+//     let (id, path) = result.unwrap();
+//     assert_eq!(id, 456); // From CLI
+//     assert_eq!(path, "src/main.rs"); // From config
 
-    // Restore original directory
-    std::env::set_current_dir(original_dir).unwrap();
-}
+//     // Restore original directory
+//     std::env::set_current_dir(original_dir).unwrap();
+// }

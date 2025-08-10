@@ -6,7 +6,7 @@ use std::{
     },
 };
 
-use colored::Colorize;
+use colored::*;
 use leetcoderustapi::{
     problem_actions::Problem,
     ProgrammingLanguage,
@@ -18,6 +18,7 @@ use crate::{
     config::RuntimeConfigSetup,
     local_config::LocalConfig,
     readme_parser::LeetcodeReadmeParser,
+    result_formatter::format_test_result,
     test_generator::TestGenerator,
     utils::*,
 };
@@ -162,12 +163,15 @@ impl LeetcodeApiRunner {
         &self, id: u32, path_to_file: &String,
     ) -> io::Result<String> {
         let problem_info = self.api.set_problem_by_id(id).await?;
+        let name = problem_info.description()?.name;
         let file_content = std::fs::read_to_string(path_to_file)
             .expect("Unable to read the file");
         let language = get_language_from_extension(path_to_file);
-
-        let test_res = problem_info.send_test(language, &file_content).await?;
-        Ok(format!("Test response for problem {id}: \n{test_res:#?}"))
+        let _ = run_local_check(path_to_file, &language).await?;
+        let processed_code = preprocess_code(&file_content, &language);
+        let test_res =
+            problem_info.send_test(language, &processed_code).await?;
+        Ok(format_test_result(id, &name, &test_res))
     }
 
     pub async fn submit_response(
