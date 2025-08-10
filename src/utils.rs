@@ -311,10 +311,7 @@ pub async fn run_local_check(
 
                     if !output.status.success() {
                         let stderr = String::from_utf8_lossy(&output.stderr);
-                        return Ok(format!(
-                            "❌ Local check failed:\n{}",
-                            stderr
-                        ));
+                        return Ok(format!("❌ Local check failed:\n{stderr}"));
                     }
 
                     return Ok("✅ Local compilation passed!".to_string());
@@ -333,11 +330,11 @@ pub async fn run_local_check(
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                return Ok(format!("❌ Compilation failed:\n{}", stderr));
+                return Ok(format!("❌ Compilation failed:\n{stderr}"));
             }
 
             Ok("✅ Local compilation passed!".to_string())
         },
-        _ => Ok(format!("⚠️ Local check not implemented for {:?}", language)),
+        _ => Ok(format!("⚠️ Local check not implemented for {language:?}",)),
     }
 }

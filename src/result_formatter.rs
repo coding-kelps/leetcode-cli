@@ -36,7 +36,7 @@ pub fn format_test_result(
         };
         output.push_str(&format!(
             "📊 Test Cases: {}\n",
-            ratio_color(format!("{}/{}", correct, total))
+            ratio_color(format!("{correct}/{total}"))
         ));
     }
 
@@ -57,15 +57,13 @@ pub fn format_test_result(
         // Percentiles if available
         if let Some(Some(runtime_perc)) = result.runtime_percentile {
             output.push_str(&format!(
-                "📈 Runtime Percentile: {:.1}%\n",
-                runtime_perc
+                "📈 Runtime Percentile: {runtime_perc:.1}%\n"
             ));
         }
 
         if let Some(Some(memory_perc)) = result.memory_percentile {
             output.push_str(&format!(
-                "📈 Memory Percentile: {:.1}%\n",
-                memory_perc
+                "📈 Memory Percentile: {memory_perc:.1}%\n"
             ));
         }
     }
@@ -88,7 +86,7 @@ pub fn format_test_result(
                 "\n📋 {}\n",
                 "Detailed Error:".red().bold()
             ));
-            output.push_str(&format!("{}\n", full_error));
+            output.push_str(&format!("{full_error}\n"));
         }
     }
 
@@ -135,6 +133,7 @@ pub fn format_test_result(
     output
 }
 
+// Status with icon
 fn format_status_message(status: Option<&str>) -> String {
     match status {
         Some("Accepted") => "✅ Accepted".green().to_string(),
@@ -150,4 +149,3 @@ fn format_status_message(status: Option<&str>) -> String {
         _ => "Unknown Status".yellow().to_string(),
     }
 }
-// Status with icon
