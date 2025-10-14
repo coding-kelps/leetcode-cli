@@ -79,17 +79,17 @@ fn main() {}
 
 ## Installation
 
-run the following command to install `leetcode_cli`:
+run the following command to install `leetcode-cli`:
 
 ```sh
 git clone https://github.com/dfayd0/leetcode-cli
-cd leetcode_cli
+cd leetcode-cli
 cargo install --path .
 ```
 
 ## Configuration
 
-The `leetcode_cli` tool uses a configuration file to store necessary settings.
+The `leetcode-cli` tool uses a configuration file to store necessary settings.
 The configuration file is located at:
 
 ```sh
@@ -123,18 +123,18 @@ Login to LeetCode and obtain the csrftoken from the cookie value.
 For more details on available commands, run:
 
 ```sh
-leetcode_cli --help
+leetcode-cli --help
 ```
 
 For a specific command, run:
 
 ```sh
-leetcode_cli <command> --help
+leetcode-cli <command> --help
 ```
 
 ### Local Configuration
 
-When you start a problem using `leetcode_cli start --id <problem_id>`, the tool automatically creates a `.leetcode-cli` file in the problem directory. This file contains:
+When you start a problem using `leetcode-cli start --id <problem_id>`, the tool automatically creates a `.leetcode-cli` file in the problem directory. This file contains:
 
 ```toml
 problem_id = <id>
@@ -148,19 +148,19 @@ Once you're in a problem directory (one that contains a `.leetcode-cli` file), y
 
 ```sh
 # Start a problem (creates the local config)
-leetcode_cli start --id 42 --lang rust
+leetcode-cli start --id 42 --lang rust
 
 # Navigate to the problem directory
 cd ~/leetcode/42_trapping_rain_water
 
 # Test your solution (automatically detects problem ID and main file)
-leetcode_cli test
+leetcode-cli test
 
 # Submit your solution (automatically detects problem ID and main file)
-leetcode_cli submit
+leetcode-cli submit
 
 # You can still override the defaults if needed
-leetcode_cli test --id 42 --file src/custom_solution.rs
+leetcode-cli test --id 42 --file src/custom_solution.rs
 ```
 
 #### Supported Commands
