@@ -71,7 +71,7 @@ fn main() {}
 
 ## Features
 
-- [ ] Automatic token generation / refresh
+- [ ] Automatic token generation / refresh (see ([#14](https://github.com/coding-kelps/leetcode-cli/issues/14)))
 - [x] Search problems
 - [x] Automatically create test cases based on the problem description
 - [x] Download problems in any programming language
