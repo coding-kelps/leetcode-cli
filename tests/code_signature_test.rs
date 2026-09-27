@@ -232,3 +232,22 @@ fn test_parse_rust_signature_design_problem_named_solution_is_an_error() {
         CodeSignatureError::NoSolution
     );
 }
+
+#[test]
+fn test_resolve_rust_nested_integer() {
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "324",
+            Some("NestedInteger")
+        ),
+        "NestedInteger::Int(324)"
+    );
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "[123,[456]]",
+            Some("NestedInteger")
+        ),
+        "NestedInteger::List(vec![NestedInteger::Int(123), \
+         NestedInteger::List(vec![NestedInteger::Int(456)])])"
+    );
+}

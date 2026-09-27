@@ -272,9 +272,13 @@ pub fn uncomment_local_definitions(
         return starter_code.to_string();
     }
     let lines: Vec<&str> = starter_code.lines().collect();
-    let Some(start) =
-        lines.iter().position(|line| line.starts_with("// Definition for"))
-    else {
+    // `// Definition for ...` titles, or a bare commented definition (385)
+    let is_definition = |line: &&str| {
+        ["// Definition for", "// #[derive", "// pub struct", "// pub enum"]
+            .iter()
+            .any(|prefix| line.starts_with(prefix))
+    };
+    let Some(start) = lines.iter().position(is_definition) else {
         return starter_code.to_string();
     };
     let end = lines[start..]
@@ -285,9 +289,9 @@ pub fn uncomment_local_definitions(
     let mut result: Vec<String> =
         lines[..start].iter().map(|line| line.to_string()).collect();
     result.push(LOCAL_DEFINITIONS_START.to_string());
-    for line in &lines[start + 1..end] {
+    for line in &lines[start..end] {
         let code = line.trim_start_matches("//");
-        // A second block (list and tree) has its own `Definition for` title.
+        // every block (list and tree) has its own `Definition for` title
         if code.trim_start().starts_with("Definition for") {
             continue;
         }

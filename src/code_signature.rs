@@ -202,6 +202,25 @@ impl CodeSignature {
     /// Converts a leetcode example value into a rust expression, using the
     /// rust type when known: `"a"` is a `char` for `char`, `2` is `2.0` for
     /// `f64`, `[..]` elements follow the `Vec` element type.
+    /// `[1,[2]]` -> `NestedInteger::List(vec![NestedInteger::Int(1), ..])`
+    fn nested_integer(value: &str) -> String {
+        match value
+            .trim()
+            .strip_prefix('[')
+            .and_then(|inner| inner.strip_suffix(']'))
+        {
+            Some(inner) => format!(
+                "NestedInteger::List(vec![{}])",
+                Self::parse_array_elements(inner)
+                    .iter()
+                    .map(|element| Self::nested_integer(element))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+            None => format!("NestedInteger::Int({})", value.trim()),
+        }
+    }
+
     pub fn resolve_rust_typed_declaration(
         test_data: &str, rust_type: Option<&str>,
     ) -> String {
@@ -210,6 +229,9 @@ impl CodeSignature {
             ty.trim().trim_start_matches("&mut ").trim_start_matches('&').trim()
         });
 
+        if rust_type == Some("NestedInteger") {
+            return Self::nested_integer(trimmed);
+        }
         if let Some(helper) = rust_type.and_then(Self::rust_node_helper) {
             let values = trimmed
                 .strip_prefix('[')

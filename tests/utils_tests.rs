@@ -229,3 +229,13 @@ fn test_prefix_code_keeps_a_design_solution_struct() {
     assert!(utils::prefix_code("impl Solution {}", &rust)
         .starts_with("pub struct Solution;"));
 }
+
+#[test]
+fn test_uncomment_local_definitions_without_title() {
+    let starter = "// #[derive(Debug, PartialEq, Eq)]\n// pub enum \
+                   NestedInteger {\n//   Int(i32),\n// }\nimpl Solution {}";
+    let result =
+        utils::uncomment_local_definitions(starter, &ProgrammingLanguage::Rust);
+    assert!(result.contains("\n#[derive(Debug, PartialEq, Eq)]\npub enum"));
+    assert!(!result.contains("// "));
+}
