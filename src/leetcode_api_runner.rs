@@ -91,6 +91,7 @@ impl LeetcodeApiRunner {
 
         let mut starter_code = self.get_starter_code(&lang, &pb)?;
         starter_code = inject_default_return_value(&starter_code, &lang);
+        starter_code = uncomment_local_definitions(&starter_code, &lang);
 
         // Tests are a bonus, the problem is still set up without them.
         let tests = LeetcodeReadmeParser::new(&md_desc)

@@ -8,6 +8,42 @@ use crate::{
     code_signature::*,
     readme_parser::ProblemTestData,
 };
+const RUST_TO_LIST: &str = "    fn to_list(values: Vec<i32>) -> \
+                            Option<Box<ListNode>> {
+        let mut head = None;
+        for val in values.into_iter().rev() {
+            head = Some(Box::new(ListNode { val, next: head }));
+        }
+        head
+    }
+
+";
+
+const RUST_TO_TREE: &str = "    fn to_tree(
+        values: Vec<Option<i32>>,
+    ) -> Option<std::rc::Rc<std::cell::RefCell<TreeNode>>> {
+        let nodes: Vec<Option<std::rc::Rc<std::cell::RefCell<TreeNode>>>> =
+            values
+                .into_iter()
+                .map(|value| {
+                    value.map(|val| {
+                        std::rc::Rc::new(std::cell::RefCell::new(
+                            TreeNode::new(val),
+                        ))
+                    })
+                })
+                .collect();
+        let mut children = nodes.iter().skip(1);
+        for node in nodes.iter().flatten() {
+            let mut node = node.borrow_mut();
+            node.left = children.next().cloned().flatten();
+            node.right = children.next().cloned().flatten();
+        }
+        nodes.first().cloned().flatten()
+    }
+
+";
+
 pub struct TestGenerator {
     starter_code: String,
     test_data:    ProblemTestData,
@@ -188,9 +224,17 @@ impl TestGenerator {
                 "    #[test]\n    fn test_case_{i}() {{\n        {body}    }}\n"
             ));
         }
+        let tests = tests.join("\n");
+        let mut helpers = String::new();
+        if tests.contains("to_list(") {
+            helpers.push_str(RUST_TO_LIST);
+        }
+        if tests.contains("to_tree(") {
+            helpers.push_str(RUST_TO_TREE);
+        }
         Ok(format!(
-            "#[cfg(test)]\nmod tests {{\n    use super::*;\n\n{}}}\n",
-            tests.join("\n")
+            "#[cfg(test)]\nmod tests {{\n    use \
+             super::*;\n\n{helpers}{tests}}}\n"
         ))
     }
 

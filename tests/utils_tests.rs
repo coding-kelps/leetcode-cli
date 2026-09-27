@@ -140,3 +140,70 @@ mod file_operations {
         assert_eq!(read_content, content);
     }
 }
+
+const LIST_STARTER: &str = "// Definition for singly-linked list.
+// #[derive(PartialEq, Eq, Clone, Debug)]
+// pub struct ListNode {
+//   pub val: i32,
+//   pub next: Option<Box<ListNode>>
+// }
+//
+// impl ListNode {
+//   #[inline]
+//   fn new(val: i32) -> Self {
+//     ListNode {
+//       next: None,
+//       val
+//     }
+//   }
+// }
+impl Solution {
+    pub fn reverse_list(head: Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+        todo!()
+    }
+}";
+
+#[test]
+fn test_uncomment_local_definitions_rust() {
+    let result = utils::uncomment_local_definitions(
+        LIST_STARTER,
+        &ProgrammingLanguage::Rust,
+    );
+    assert!(result.contains("\npub struct ListNode {\n"));
+    assert!(result.contains("\n  fn new(val: i32) -> Self {\n"));
+    assert!(!result.contains("// pub struct ListNode"));
+    assert!(!result.contains("Definition for"));
+    assert!(result.contains("impl Solution {"));
+}
+
+#[test]
+fn test_uncomment_local_definitions_without_definitions() {
+    let starter =
+        "impl Solution {\n    pub fn f() -> i32 {\n        todo!()\n    }\n}";
+    assert_eq!(
+        utils::uncomment_local_definitions(starter, &ProgrammingLanguage::Rust),
+        starter
+    );
+    assert_eq!(
+        utils::uncomment_local_definitions(
+            LIST_STARTER,
+            &ProgrammingLanguage::Python3
+        ),
+        LIST_STARTER
+    );
+}
+
+#[test]
+fn test_preprocess_code_removes_local_definitions() {
+    let local = utils::uncomment_local_definitions(
+        LIST_STARTER,
+        &ProgrammingLanguage::Rust,
+    );
+    let file = format!("pub struct Solution;\n\n{local}\n\nfn main() {{}}\n");
+    let sent = utils::preprocess_code(&file, &ProgrammingLanguage::Rust);
+    assert!(!sent.contains("struct ListNode"));
+    assert!(!sent.contains("leetcode-cli"));
+    assert!(!sent.contains("pub struct Solution;"));
+    assert!(!sent.contains("fn main"));
+    assert!(sent.contains("pub fn reverse_list"));
+}

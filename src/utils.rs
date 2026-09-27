@@ -252,6 +252,62 @@ pub fn inject_default_return_value(
     }
 }
 
+const LOCAL_DEFINITIONS_START: &str =
+    "// leetcode-cli: local definitions, removed before test / submit";
+const LOCAL_DEFINITIONS_END: &str = "// leetcode-cli: end of local definitions";
+
+/// Leetcode rust starter code ships the `ListNode` / `TreeNode` definitions
+/// commented out, the file does not compile locally without them. Uncomments
+/// them between markers, `preprocess_code` removes them again before the code
+/// is sent to leetcode, which defines them itself.
+pub fn uncomment_local_definitions(
+    starter_code: &str, lang: &ProgrammingLanguage,
+) -> String {
+    if !matches!(lang, ProgrammingLanguage::Rust) {
+        return starter_code.to_string();
+    }
+    let lines: Vec<&str> = starter_code.lines().collect();
+    let Some(start) =
+        lines.iter().position(|line| line.starts_with("// Definition for"))
+    else {
+        return starter_code.to_string();
+    };
+    let end = lines[start..]
+        .iter()
+        .position(|line| !line.starts_with("//"))
+        .map_or(lines.len(), |offset| start + offset);
+
+    let mut result: Vec<String> =
+        lines[..start].iter().map(|line| line.to_string()).collect();
+    result.push(LOCAL_DEFINITIONS_START.to_string());
+    for line in &lines[start + 1..end] {
+        let code = line.trim_start_matches("//");
+        result.push(code.strip_prefix(' ').unwrap_or(code).to_string());
+    }
+    result.push(LOCAL_DEFINITIONS_END.to_string());
+    result.extend(lines[end..].iter().map(|line| line.to_string()));
+    result.join("\n")
+}
+
+fn remove_local_definitions(content: &str) -> String {
+    let mut inside = false;
+    content
+        .lines()
+        .filter(|line| match line.trim() {
+            LOCAL_DEFINITIONS_START => {
+                inside = true;
+                false
+            },
+            LOCAL_DEFINITIONS_END => {
+                inside = false;
+                false
+            },
+            _ => !inside,
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
 pub fn difficulty_color(difficulty: &str) -> colored::ColoredString {
     match difficulty {
         "Easy" => "Easy".green(),
@@ -273,9 +329,11 @@ pub fn preprocess_code(
     }
 }
 
-/// Removes pub struct Solution; from the top of the file
+/// Removes pub struct Solution; from the top of the file, the local
+/// ListNode / TreeNode definitions and the main function
 fn preprocess_rust_content(content: &str) -> String {
     let n = delete_line_content(content, "pub struct Solution;");
+    let n = remove_local_definitions(&n);
     remove_main(&n)
 }
 fn remove_main(content: &str) -> String {

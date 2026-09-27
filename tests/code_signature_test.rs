@@ -190,3 +190,35 @@ fn test_resolve_rust_typed_declaration_non_ascii_string() {
         "\"héllo\".to_string()"
     );
 }
+
+#[test]
+fn test_resolve_rust_typed_declaration_list_and_tree() {
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "[1,2,3]",
+            Some("Option<Box<ListNode>>")
+        ),
+        "to_list(vec![1, 2, 3])"
+    );
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "[[1,4],[]]",
+            Some("Vec<Option<Box<ListNode>>>")
+        ),
+        "vec![to_list(vec![1, 4]), to_list(vec![])]"
+    );
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "[1,null,2]",
+            Some("Option<Rc<RefCell<TreeNode>>>")
+        ),
+        "to_tree(vec![Some(1), None, Some(2)])"
+    );
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "[]",
+            Some("Option<Rc<RefCell<TreeNode>>>")
+        ),
+        "to_tree(vec![])"
+    );
+}

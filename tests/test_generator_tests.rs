@@ -244,3 +244,45 @@ fn test_rust_mut_parameter_with_return_value_checks_result() {
     );
     assert!(result.contains("assert_eq!(result, expected);"));
 }
+
+#[test]
+fn test_rust_tree_problem_adds_tree_helper_only() {
+    let starter_code =
+        "use std::rc::Rc;\nuse std::cell::RefCell;\nimpl Solution {\n    pub \
+         fn invert_tree(root: Option<Rc<RefCell<TreeNode>>>) -> \
+         Option<Rc<RefCell<TreeNode>>> {\n        todo!()\n    }\n}"
+            .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[2,1,3]".to_string()],
+        outputs:       vec!["[2,3,1]".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
+
+    assert!(result.contains("fn to_tree("));
+    assert!(!result.contains("fn to_list("));
+    assert!(result.contains(
+        "let result = Solution::invert_tree(to_tree(vec![Some(2), Some(1), \
+         Some(3)]));"
+    ));
+}
+
+#[test]
+fn test_rust_plain_problem_adds_no_helper() {
+    let starter_code = "impl Solution {\n    pub fn f(nums: Vec<i32>) -> i32 \
+                        {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[1]".to_string()],
+        outputs:       vec!["1".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
+
+    assert!(!result.contains("fn to_tree("));
+    assert!(!result.contains("fn to_list("));
+}

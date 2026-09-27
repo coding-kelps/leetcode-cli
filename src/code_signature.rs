@@ -206,6 +206,22 @@ impl CodeSignature {
             ty.trim().trim_start_matches("&mut ").trim_start_matches('&').trim()
         });
 
+        if let Some(helper) = rust_type.and_then(Self::rust_node_helper) {
+            let values = trimmed
+                .strip_prefix('[')
+                .and_then(|values| values.strip_suffix(']'))
+                .unwrap_or(trimmed);
+            let values: Vec<String> = Self::parse_array_elements(values)
+                .into_iter()
+                .filter(|value| helper == "to_tree" || value != "null")
+                .map(|value| match (helper, value.as_str()) {
+                    ("to_tree", "null") => "None".to_string(),
+                    ("to_tree", _) => format!("Some({value})"),
+                    _ => value,
+                })
+                .collect();
+            return format!("{helper}(vec![{}])", values.join(", "));
+        }
         if let Some(content) = trimmed
             .strip_prefix('"')
             .map(|rest| rest.strip_suffix('"').unwrap_or(rest))
@@ -246,6 +262,16 @@ impl CodeSignature {
             return format!("{trimmed}.0");
         }
         trimmed.to_string()
+    }
+
+    /// Test helper building a leetcode linked list / binary tree from its
+    /// array representation, for the rust types using them.
+    fn rust_node_helper(rust_type: &str) -> Option<&'static str> {
+        match rust_type.replace(' ', "").as_str() {
+            "Option<Box<ListNode>>" => Some("to_list"),
+            "Option<Rc<RefCell<TreeNode>>>" => Some("to_tree"),
+            _ => None,
+        }
     }
 
     fn parse_array_elements(inner: &str) -> Vec<String> {
