@@ -61,8 +61,8 @@ impl LeetcodeApiRunner {
 
     /// Fetches the problem name by its ID.
     pub async fn get_problem_name(&self, id: u32) -> io::Result<String> {
-        let pb = self.api.set_problem_by_id(id).await.unwrap();
-        Ok(pb.description().unwrap().name.clone())
+        let pb = self.api.set_problem_by_id(id).await?;
+        Ok(pb.description()?.name)
     }
 
     /// Fetches the available languages for a given problem ID.
