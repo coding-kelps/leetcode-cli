@@ -24,3 +24,5 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] in-place problems (`&mut` parameter, no return value, eg reverse_string) pass the value instead of `&mut` and compare `()` with the expected output instead of the mutated parameter
 - [x] the readme parser splits the input on every `,` before looking for `=`, so a string containing `,` or `=` is mangled (`"t,a=n"` becomes `"t,n"`)
 - [x] `ListNode` / `TreeNode` problems: the type definitions stay commented so the file does not compile, and list / tree inputs are generated as `vec![..]`
+- [x] the readme parser only reads the first line of `Input:`, multi-line inputs (eg the `grid` of number of islands) become `[`
+- [x] zero width spaces from the leetcode html end up in the generated literals and break the file (greatest common divisor of strings)

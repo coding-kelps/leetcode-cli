@@ -44,11 +44,17 @@ impl LeetcodeReadmeParser {
     }
 
     fn extract_inputs(&self) -> Vec<String> {
-        self.extract_from_pattern(r"(?m)^\s*\*?\*?Input:\*?\*?\s*(.*)$")
+        // multi-line inputs (eg matrices) go on until the Output line
+        self.extract_from_pattern(
+            r"(?ms)^\s*\*?\*?Input:\*?\*?[ \t]*(.*?)\s*^\s*\*?\*?Output:",
+        )
     }
 
     fn extract_outputs(&self) -> Vec<String> {
-        self.extract_from_pattern(r"(?m)^\s*\*?\*?Output:\*?\*?\s*(.*)$")
+        // an output ends with a blank line, the explanation or the code block
+        self.extract_from_pattern(
+            r"(?ms)^\s*\*?\*?Output:\*?\*?[ \t]*(.*?)\s*(?:\n\s*\n|^\s*\*?\*?Explanation|^\s*```|\z)",
+        )
     }
 
     /// `nums = [1,2], s = "a,b=c"` -> `[1,2],"a,b=c"`: removes the
@@ -115,7 +121,9 @@ impl LeetcodeReadmeParser {
             if let Some(matched) = capture.get(1) {
                 let input = matched
                     .as_str()
-                    .replace(['\n', '\t'], " ")
+                    .replace(['\n', '\t', '\u{a0}'], " ")
+                    // leetcode html sometimes contains zero width spaces
+                    .replace(['\u{200b}', '\u{feff}'], "")
                     .trim()
                     .to_string();
 

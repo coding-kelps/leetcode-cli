@@ -303,3 +303,32 @@ fn test_output_string_with_equals_is_kept() {
     assert_eq!(data.inputs, vec!["\"a\",\"b\""]);
     assert_eq!(data.outputs, vec!["\"a=b, c\""]);
 }
+
+#[test]
+fn test_multi_line_input() {
+    let readme = "**Example 1:**\n\n```\nInput: grid = [\n  [\"1\",\"0\"],\n  \
+                  [\"0\",\"1\"]\n]\nOutput: 2\n\n```\n";
+    let data = LeetcodeReadmeParser::new(readme).parse().unwrap();
+    assert_eq!(data.inputs, vec!["[   [\"1\",\"0\"],   [\"0\",\"1\"] ]"]);
+    assert_eq!(data.outputs, vec!["2"]);
+}
+
+#[test]
+fn test_output_stops_at_explanation() {
+    let readme = "**Example 1:**\n\n```\nInput: nums = [2,7], target = \
+                  9\nOutput: [0,1]\nExplanation: Because nums[0] + nums[1] == \
+                  9.\n\n```\n\n**Example 2:**\n\n**Input:** nums = \
+                  [4]\n\n**Output:** [0]\n\n**Explanation:**\n";
+    let data = LeetcodeReadmeParser::new(readme).parse().unwrap();
+    assert_eq!(data.inputs, vec!["[2,7],9", "[4]"]);
+    assert_eq!(data.outputs, vec!["[0,1]", "[0]"]);
+}
+
+#[test]
+fn test_zero_width_spaces_are_removed() {
+    let readme = "**Example 1:**\n\n```\nInput: s = \"ab\u{200b}\"\nOutput: \
+                  \"\"\u{200b}\u{200b}\n```\n";
+    let data = LeetcodeReadmeParser::new(readme).parse().unwrap();
+    assert_eq!(data.inputs, vec!["\"ab\""]);
+    assert_eq!(data.outputs, vec!["\"\""]);
+}
