@@ -29,3 +29,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] empty expected outputs (`vec![]`) do not type check, the `expected` binding has no type annotation (3sum, combination sum)
 - [x] interactive problems (guess number) have hidden inputs, the generated calls pass more arguments than the function takes
 - [x] custom judge outputs (remove duplicates / remove element: `2, nums = [1,2,_]`) are pasted as is and do not compile
+- [x] float outputs are compared with `assert_eq!`, a correct `my_pow` fails on `9.261000000000001 != 9.261`, leetcode accepts a 1e-5 difference

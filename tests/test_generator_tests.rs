@@ -346,3 +346,40 @@ fn test_rust_custom_judge_output_checks_length_and_head() {
     );
     assert!(result.contains("assert_eq!(head, expected_arg0);"));
 }
+
+#[test]
+fn test_rust_float_outputs_are_compared_with_tolerance() {
+    let starter_code = "impl Solution {\n    pub fn my_pow(x: f64, n: i32) -> \
+                        f64 {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["2.10000,3".to_string()],
+        outputs:       vec!["9.26100".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
+
+    assert!(result.contains("let expected: f64 = 9.26100;"));
+    assert!(result.contains("assert!((result - expected).abs() < 1e-5"));
+    assert!(!result.contains("assert_eq!"));
+}
+
+#[test]
+fn test_rust_float_vec_outputs_are_compared_with_tolerance() {
+    let starter_code = "impl Solution {\n    pub fn f(nums: Vec<i32>) -> \
+                        Vec<f64> {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[1]".to_string()],
+        outputs:       vec!["[0.50000,-1.00000]".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
+
+    assert!(result.contains("assert_eq!(result.len(), expected.len());"));
+    assert!(result.contains("assert!((a - e).abs() < 1e-5"));
+}

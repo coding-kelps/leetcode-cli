@@ -84,6 +84,29 @@ impl TestGenerator {
             .min(self.test_data.outputs.len())
     }
 
+    /// Compares `actual` with `expected`, floats with the 1e-5 tolerance
+    /// leetcode uses.
+    fn rust_assertion(actual: &str, rust_type: Option<&str>) -> Vec<String> {
+        let rust_type = rust_type
+            .map(|ty| ty.trim_start_matches("&mut ").replace(' ', ""))
+            .unwrap_or_default();
+        match rust_type.as_str() {
+            "f64" | "f32" => vec![format!(
+                "assert!(({actual} - expected).abs() < 1e-5, \"{{}} != \
+                 {{}}\", {actual}, expected);"
+            )],
+            "Vec<f64>" | "Vec<f32>" => vec![
+                format!("assert_eq!({actual}.len(), expected.len());"),
+                format!(
+                    "for (a, e) in {actual}.iter().zip(&expected) {{ \
+                     assert!((a - e).abs() < 1e-5, \"{{:?}} != {{:?}}\", \
+                     {actual}, expected); }}"
+                ),
+            ],
+            _ => vec![format!("assert_eq!({actual}, expected);")],
+        }
+    }
+
     /// `2, nums = [1,2,_]` -> (`2`, `nums`, `[1,2]`), the `_` being the
     /// elements the judge ignores.
     fn parse_custom_judge_output(
@@ -262,16 +285,17 @@ impl TestGenerator {
                 signature.function_name,
                 arguments.join(", ")
             );
-            match mutated {
+            let actual = match mutated {
                 Some(j) => {
                     lines.push(format!("{call};"));
-                    lines.push(format!("assert_eq!(arg{j}, expected);"));
+                    format!("arg{j}")
                 },
                 None => {
                     lines.push(format!("let result = {call};"));
-                    lines.push("assert_eq!(result, expected);".to_string());
+                    "result".to_string()
                 },
-            }
+            };
+            lines.extend(Self::rust_assertion(&actual, expected_type));
 
             if let Some((_, j, array)) = &custom_judge {
                 let element_type = parameter_types[*j]
