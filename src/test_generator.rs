@@ -121,8 +121,7 @@ impl TestGenerator {
     fn generate_rust_tests(
         &self, signature: &CodeSignature,
     ) -> Result<String, TestGeneratorError> {
-        let mut tests =
-            "#[cfg(test)]\nmod tests {\n\n\tuse super::*;\n\n".to_string();
+        let mut tests = Vec::new();
 
         for i in 0..self.test_case_count() {
             let expect = format!(
@@ -142,18 +141,20 @@ impl TestGenerator {
                 .collect();
 
             let test_call = format!(
-                "\t\tlet result = Solution::{}({});\n",
+                "        let result = Solution::{}({});\n",
                 signature.function_name,
                 converted_params.join(", ")
             );
-            tests.push_str(&format!(
-                "\t#[test]\n\tfn test_case_{i}() {{\n\t    \
-                 {expect}{test_call}\t\tassert_eq!(result, \
-                 expected);\n\t}}\n\n"
+            tests.push(format!(
+                "    #[test]\n    fn test_case_{i}() {{\n        \
+                 {expect}{test_call}        assert_eq!(result, expected);\n    \
+                 }}\n"
             ));
         }
-        tests.push_str("}\n");
-        Ok(tests)
+        Ok(format!(
+            "#[cfg(test)]\nmod tests {{\n    use super::*;\n\n{}}}\n",
+            tests.join("\n")
+        ))
     }
 
     pub fn run(

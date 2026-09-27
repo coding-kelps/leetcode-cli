@@ -16,7 +16,7 @@ Ordered from easiest to hardest fix.
 
 Found by generating the file `start` writes for real leetcode rust starter codes and running `cargo test` on it.
 
-- [ ] generated tests mix tabs and spaces for indentation
+- [x] generated tests mix tabs and spaces for indentation
 - [ ] `inject_default_return_value` is a no-op, the starter code keeps an empty body so nothing compiles (`expected i32, found ()`) and the tests cannot even run
 - [ ] `parse_rust_signature` / `parse_python_signature` slice the parameters with `end + p` instead of `end + 1 + p`: the last char of the parameters is dropped and a function without parameters (`fn new()`) panics with `byte range starts at .. but ends at ..`
 - [ ] `parse_rust_signature` takes the first `fn ` of the file, which is the commented `fn new` of the `ListNode` / `TreeNode` definition, so tests call `Solution::new(..)`; design problems (no `impl Solution`, eg `MinStack`) also get `Solution::..` calls
