@@ -167,7 +167,7 @@ impl LeetcodeApiRunner {
         let file_content = std::fs::read_to_string(path_to_file)
             .expect("Unable to read the file");
         let language = get_language_from_extension(path_to_file);
-        let _ = run_local_check(path_to_file, &language).await?;
+        run_local_check(path_to_file, &language).await?;
         let processed_code = preprocess_code(&file_content, &language);
         let test_res =
             problem_info.send_test(language, &processed_code).await?;

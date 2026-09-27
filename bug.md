@@ -2,7 +2,7 @@
 
 Ordered from easiest to hardest fix.
 
-- [ ] `test` ignores the result of `run_local_check` (`let _ = ...`), so a failed local compilation is never shown and the code is still sent to leetcode
+- [x] `test` ignores the result of `run_local_check` (`let _ = ...`), so a failed local compilation is never shown and the code is still sent to leetcode
 - [ ] `get_problem_name` uses `unwrap`, so it panics instead of returning an error on a bad id or api failure
 - [ ] `submit` does not call `preprocess_code`, so rust submissions still contain `pub struct Solution;` and `fn main() {}`
 - [ ] `toml_edit` dependency is unused, `write_token_to_file` edits the config with a regex instead

@@ -291,7 +291,8 @@ fn find_manifest_dir(start_dir: &Path) -> Option<PathBuf> {
     None
 }
 
-/// Runs local compilation check before sending to LeetCode
+/// Runs local compilation check before sending to LeetCode, errors out if
+/// the code does not compile
 pub async fn run_local_check(
     path_to_file: &str, language: &ProgrammingLanguage,
 ) -> io::Result<String> {
@@ -311,7 +312,9 @@ pub async fn run_local_check(
 
                     if !output.status.success() {
                         let stderr = String::from_utf8_lossy(&output.stderr);
-                        return Ok(format!("❌ Local check failed:\n{stderr}"));
+                        return Err(io::Error::other(format!(
+                            "❌ Local check failed:\n{stderr}"
+                        )));
                     }
 
                     return Ok("✅ Local compilation passed!".to_string());
@@ -330,7 +333,9 @@ pub async fn run_local_check(
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                return Ok(format!("❌ Compilation failed:\n{stderr}"));
+                return Err(io::Error::other(format!(
+                    "❌ Compilation failed:\n{stderr}"
+                )));
             }
 
             Ok("✅ Local compilation passed!".to_string())
