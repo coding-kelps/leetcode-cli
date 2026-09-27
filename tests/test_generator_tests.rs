@@ -201,3 +201,46 @@ fn test_more_examples_than_inputs_does_not_panic() {
     assert!(result.contains("def test_case_0():"));
     assert!(!result.contains("def test_case_1():"));
 }
+
+#[test]
+fn test_rust_in_place_problem_checks_mutated_parameter() {
+    let starter_code = "impl Solution {\n    pub fn reverse_string(s: &mut \
+                        Vec<char>) {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[\"h\",\"e\"]".to_string()],
+        outputs:       vec!["[\"e\",\"h\"]".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
+
+    assert!(result.contains("let expected = vec!['e', 'h'];"));
+    assert!(result.contains("let mut arg0 = vec!['h', 'e'];"));
+    assert!(result.contains("Solution::reverse_string(&mut arg0);"));
+    assert!(result.contains("assert_eq!(arg0, expected);"));
+    assert!(!result.contains("let result"));
+}
+
+#[test]
+fn test_rust_mut_parameter_with_return_value_checks_result() {
+    let starter_code = "impl Solution {\n    pub fn remove_element(nums: &mut \
+                        Vec<i32>, val: i32) -> i32 {\n        todo!()\n    \
+                        }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[3,2,2,3],3".to_string()],
+        outputs:       vec!["2".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
+
+    assert!(result.contains("let mut arg0 = vec![3, 2, 2, 3];"));
+    assert!(
+        result.contains("let result = Solution::remove_element(&mut arg0, 3);")
+    );
+    assert!(result.contains("assert_eq!(result, expected);"));
+}

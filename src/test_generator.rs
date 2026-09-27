@@ -120,38 +120,72 @@ impl TestGenerator {
         let mut tests = Vec::new();
         let parameter_types = signature.parameter_types();
 
+        // in-place problems (`&mut` parameter, no return value): the
+        // expected output is the value of the first `&mut` parameter
+        let mutated = signature
+            .return_type
+            .is_none()
+            .then(|| {
+                parameter_types.iter().position(|ty| {
+                    ty.as_deref().is_some_and(|ty| ty.starts_with("&mut "))
+                })
+            })
+            .flatten();
+        let expected_type = match mutated {
+            Some(j) => parameter_types[j].as_deref(),
+            None => signature.return_type.as_deref(),
+        };
+
         for i in 0..self.test_case_count() {
-            let expect = format!(
+            let mut body = format!(
                 "let expected = {};\n",
                 CodeSignature::resolve_rust_typed_declaration(
                     &self.test_data.outputs[i],
-                    signature.return_type.as_deref(),
+                    expected_type,
                 )
             );
 
             // Split input parameters and convert each one with its type
             let input_params =
                 self.split_input_parameters(&self.test_data.inputs[i]);
-            let converted_params: Vec<String> = input_params
-                .iter()
-                .enumerate()
-                .map(|(j, param)| {
-                    CodeSignature::resolve_rust_typed_declaration(
-                        param,
-                        parameter_types.get(j).and_then(|ty| ty.as_deref()),
-                    )
-                })
-                .collect();
+            let mut arguments = Vec::new();
+            for (j, param) in input_params.iter().enumerate() {
+                let rust_type =
+                    parameter_types.get(j).and_then(|ty| ty.as_deref());
+                let value = CodeSignature::resolve_rust_typed_declaration(
+                    param, rust_type,
+                );
+                match rust_type {
+                    Some(ty) if ty.starts_with("&mut ") => {
+                        body.push_str(&format!(
+                            "        let mut arg{j} = {value};\n"
+                        ));
+                        arguments.push(format!("&mut arg{j}"));
+                    },
+                    Some(ty) if ty.starts_with('&') => {
+                        arguments.push(format!("&{value}"))
+                    },
+                    _ => arguments.push(value),
+                }
+            }
 
-            let test_call = format!(
-                "        let result = Solution::{}({});\n",
+            let call = format!(
+                "Solution::{}({})",
                 signature.function_name,
-                converted_params.join(", ")
+                arguments.join(", ")
             );
-            tests.push(format!(
-                "    #[test]\n    fn test_case_{i}() {{\n        \
-                 {expect}{test_call}        assert_eq!(result, expected);\n    \
-                 }}\n"
+            match mutated {
+                Some(j) => body.push_str(&format!(
+                    "        {call};\n        assert_eq!(arg{j}, expected);\n"
+                )),
+                None => body.push_str(&format!(
+                    "        let result = {call};\n        assert_eq!(result, \
+                     expected);\n"
+                )),
+            }
+            tests
+                .push(format!(
+                "    #[test]\n    fn test_case_{i}() {{\n        {body}    }}\n"
             ));
         }
         Ok(format!(
