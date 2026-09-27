@@ -120,3 +120,73 @@ fn test_parse_rust_signature_design_problem_is_an_error() {
         CodeSignatureError::NoSolution
     );
 }
+
+#[test]
+fn test_parse_rust_signature_return_type() {
+    let starter = "impl Solution {\n    pub fn f(nums: Vec<i32>) -> \
+                   Vec<Vec<char>> {\n    }\n}";
+    let sig = CodeSignature::parse_code_signature(&Rust, starter).unwrap();
+    assert_eq!(sig.return_type.as_deref(), Some("Vec<Vec<char>>"));
+    assert_eq!(sig.parameter_types(), vec![Some("Vec<i32>".to_string())]);
+
+    let starter =
+        "impl Solution {\n    pub fn f(s: &mut Vec<char>) {\n    }\n}";
+    let sig = CodeSignature::parse_code_signature(&Rust, starter).unwrap();
+    assert_eq!(sig.return_type, None);
+}
+
+#[test]
+fn test_resolve_rust_typed_declaration_char() {
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "[[\"1\",\"0\"],[\"'\",\"\\\\\"]]",
+            Some("Vec<Vec<char>>")
+        ),
+        "vec![vec!['1', '0'], vec!['\\'', '\\\\']]"
+    );
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "[\"h\",\"e\"]",
+            Some("&mut Vec<char>")
+        ),
+        "vec!['h', 'e']"
+    );
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "[\"h\",\"e\"]",
+            Some("Vec<String>")
+        ),
+        "vec![\"h\".to_string(), \"e\".to_string()]"
+    );
+}
+
+#[test]
+fn test_resolve_rust_typed_declaration_float() {
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration("2", Some("f64")),
+        "2.0"
+    );
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration("2.50000", Some("f64")),
+        "2.50000"
+    );
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration(
+            "[1,2]",
+            Some("Vec<f64>")
+        ),
+        "vec![1.0, 2.0]"
+    );
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration("2", Some("i32")),
+        "2"
+    );
+}
+
+#[test]
+fn test_resolve_rust_typed_declaration_non_ascii_string() {
+    assert_eq!(
+        CodeSignature::resolve_rust_typed_declaration("\"héllo\"", None),
+        "\"héllo\".to_string()"
+    );
+}

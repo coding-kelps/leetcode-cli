@@ -100,9 +100,27 @@ impl CodeSignature {
             .find("fn ")
             .ok_or(CodeSignatureError::ParseError)?
             + solution;
-        let (fn_name, parameters) =
-            Self::parse_name_and_parameters(&code[start + 3..])?;
-        Ok(CodeSignature::new_function(fn_name, parameters))
+        let (fn_name, parameters, rest) =
+            Self::parse_signature_parts(&code[start + 3..])?;
+        let return_type = rest
+            .split('{')
+            .next()
+            .and_then(|head| head.trim().strip_prefix("->"))
+            .map(|ty| ty.trim().to_string())
+            .filter(|ty| !ty.is_empty());
+        Ok(CodeSignature {
+            return_type,
+            ..CodeSignature::new_function(fn_name, parameters)
+        })
+    }
+
+    /// Type of each parameter (`nums: Vec<i32>` -> `Vec<i32>`), `None` when
+    /// it cannot be read.
+    pub fn parameter_types(&self) -> Vec<Option<String>> {
+        self.parameters
+            .iter()
+            .map(|p| p.split_once(':').map(|(_, ty)| ty.trim().to_string()))
+            .collect()
     }
 
     fn strip_rust_comments(code: &str) -> String {
@@ -117,6 +135,15 @@ impl CodeSignature {
     fn parse_name_and_parameters(
         code: &str,
     ) -> Result<(String, Vec<String>), CodeSignatureError> {
+        Self::parse_signature_parts(code)
+            .map(|(fn_name, parameters, _)| (fn_name, parameters))
+    }
+
+    /// Same as `parse_name_and_parameters`, also returns what follows the
+    /// closing parenthesis (return type, body...).
+    fn parse_signature_parts(
+        code: &str,
+    ) -> Result<(String, Vec<String>, &str), CodeSignatureError> {
         let open = code.find('(').ok_or(CodeSignatureError::ParseError)?;
         let fn_name = code[..open].trim().to_string();
         if fn_name.is_empty() {
@@ -127,14 +154,14 @@ impl CodeSignature {
         let mut current = String::new();
         let mut depth = 0;
         let mut previous = ' ';
-        for ch in code[open + 1..].chars() {
+        for (i, ch) in code[open + 1..].char_indices() {
             match ch {
                 '(' | '<' | '[' => depth += 1,
                 ')' if depth == 0 => {
                     if !current.trim().is_empty() {
                         parameters.push(current.trim().to_string());
                     }
-                    return Ok((fn_name, parameters));
+                    return Ok((fn_name, parameters, &code[open + 2 + i..]));
                 },
                 // `->` is not a closing bracket
                 '>' if previous == '-' => {},
@@ -165,47 +192,58 @@ impl CodeSignature {
     }
 
     fn resolve_rust_declaration(test_data: &str) -> String {
+        Self::resolve_rust_typed_declaration(test_data, None)
+    }
+
+    /// Converts a leetcode example value into a rust expression, using the
+    /// rust type when known: `"a"` is a `char` for `char`, `2` is `2.0` for
+    /// `f64`, `[..]` elements follow the `Vec` element type.
+    pub fn resolve_rust_typed_declaration(
+        test_data: &str, rust_type: Option<&str>,
+    ) -> String {
         let trimmed = test_data.trim();
+        let rust_type = rust_type.map(|ty| {
+            ty.trim().trim_start_matches("&mut ").trim_start_matches('&').trim()
+        });
 
-        if trimmed.starts_with('"') {
-            let mut end_quote = 1;
-            let chars: Vec<char> = trimmed.chars().collect();
-
-            while end_quote < chars.len() {
-                if chars[end_quote] == '"'
-                    && (end_quote == 1 || chars[end_quote - 1] != '\\')
-                {
-                    break;
-                }
-                end_quote += 1;
+        if let Some(content) = trimmed
+            .strip_prefix('"')
+            .map(|rest| rest.strip_suffix('"').unwrap_or(rest))
+        {
+            if rust_type == Some("char") {
+                let escaped = match content {
+                    "'" => "\\'".to_string(),
+                    "\\" => "\\\\".to_string(),
+                    _ => content.to_string(),
+                };
+                return format!("'{escaped}'");
             }
-
-            if end_quote >= chars.len() {
-                end_quote = chars.len();
-            } else {
-                end_quote += 1;
-            }
-
-            let string_content = &trimmed[1..end_quote - 1];
             return format!(
                 "\"{}\".to_string()",
-                string_content.replace('\\', "\\\\")
+                content.replace('\\', "\\\\")
             );
         }
         if trimmed.starts_with('[') && trimmed.ends_with(']') {
+            let element_type = rust_type
+                .and_then(|ty| ty.strip_prefix("Vec<"))
+                .and_then(|ty| ty.strip_suffix('>'));
             let inner = &trimmed[1..trimmed.len() - 1];
-            let elements = Self::parse_array_elements(inner);
-            let converted_elements: Vec<String> = elements
-                .into_iter()
-                .map(|elem| Self::resolve_rust_declaration(&elem))
-                .collect();
+            let converted_elements: Vec<String> =
+                Self::parse_array_elements(inner)
+                    .into_iter()
+                    .map(|elem| {
+                        Self::resolve_rust_typed_declaration(
+                            &elem,
+                            element_type,
+                        )
+                    })
+                    .collect();
             return format!("vec![{}]", converted_elements.join(", "));
         }
-        if trimmed.parse::<i64>().is_ok()
-            || trimmed == "true"
-            || trimmed == "false"
+        if matches!(rust_type, Some("f64" | "f32"))
+            && trimmed.parse::<i64>().is_ok()
         {
-            return trimmed.to_string();
+            return format!("{trimmed}.0");
         }
         trimmed.to_string()
     }

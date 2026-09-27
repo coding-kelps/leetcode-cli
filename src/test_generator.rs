@@ -118,22 +118,29 @@ impl TestGenerator {
         &self, signature: &CodeSignature,
     ) -> Result<String, TestGeneratorError> {
         let mut tests = Vec::new();
+        let parameter_types = signature.parameter_types();
 
         for i in 0..self.test_case_count() {
             let expect = format!(
                 "let expected = {};\n",
-                CodeSignature::resolve_declaration(
-                    &Rust,
-                    &self.test_data.outputs[i]
+                CodeSignature::resolve_rust_typed_declaration(
+                    &self.test_data.outputs[i],
+                    signature.return_type.as_deref(),
                 )
             );
 
-            // Split input parameters and convert each one
+            // Split input parameters and convert each one with its type
             let input_params =
                 self.split_input_parameters(&self.test_data.inputs[i]);
             let converted_params: Vec<String> = input_params
                 .iter()
-                .map(|param| CodeSignature::resolve_declaration(&Rust, param))
+                .enumerate()
+                .map(|(j, param)| {
+                    CodeSignature::resolve_rust_typed_declaration(
+                        param,
+                        parameter_types.get(j).and_then(|ty| ty.as_deref()),
+                    )
+                })
                 .collect();
 
             let test_call = format!(
