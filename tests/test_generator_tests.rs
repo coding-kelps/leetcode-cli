@@ -3,7 +3,10 @@ use std::vec;
 use leetcode_cli::{
     code_signature::CodeSignature,
     readme_parser::ProblemTestData,
-    test_generator::TestGenerator,
+    test_generator::{
+        TestGenerator,
+        TestGeneratorError,
+    },
 };
 use leetcoderustapi::ProgrammingLanguage;
 
@@ -166,4 +169,18 @@ fn test_python3_test_generation_class() {
     assert!(
         result.contains("assert Solution().twoSum([2,7,11,15], 9) == [0,1]")
     );
+}
+
+#[test]
+fn test_unsupported_language_returns_unsupported_error() {
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[2,7,11,15], 9".to_string()],
+        outputs:       vec!["[0,1]".to_string()],
+    };
+
+    let mut generator = TestGenerator::new("class Solution {\n};", test_data);
+    let result = generator.run(&ProgrammingLanguage::CPP);
+
+    assert_eq!(result.unwrap_err(), TestGeneratorError::UnsupportedLanguage);
 }

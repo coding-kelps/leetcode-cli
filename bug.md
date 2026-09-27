@@ -9,4 +9,4 @@ Ordered from easiest to hardest fix.
 - [x] `parse_code_signature` only matches `Python`, not `Python3`, so test generation (and thus `start`) fails for python3
 - [x] `language_to_string` and `get_extension_from_language` panic on racket, erlang, elixir, dart, pandas and react even though `parse_programming_language` accepts them
 - [x] `LocalConfig::get_main_file` matches `c++` while `language_to_string` writes `cpp`, and has no arm for csharp, ruby, swift, kotlin, scala, bash, php..., so those fall back to `main.txt` and `test` / `submit` without `-p` point to a missing file
-- [ ] `TestGenerator::run` returns an error for any language other than rust / python, and `start_problem` propagates it with `?`, so `start` fails for every other language
+- [x] `TestGenerator::run` returns an error for any language other than rust / python, and `start_problem` propagates it with `?`, so `start` fails for every other language

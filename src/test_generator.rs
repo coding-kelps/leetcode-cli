@@ -17,6 +17,8 @@ pub struct TestGenerator {
 pub enum TestGeneratorError {
     #[error("Error creating tests")]
     ProblemTestDataError,
+    #[error("test generation is not supported for this language yet")]
+    UnsupportedLanguage,
 }
 
 impl From<TestGeneratorError> for std::io::Error {
@@ -148,13 +150,15 @@ impl TestGenerator {
     pub fn run(
         &mut self, lang: &ProgrammingLanguage,
     ) -> Result<String, TestGeneratorError> {
+        if !matches!(lang, Rust | Python | Python3) {
+            return Err(TestGeneratorError::UnsupportedLanguage);
+        }
         let signature =
             CodeSignature::parse_code_signature(lang, &self.starter_code)?;
 
         match lang {
             Rust => self.generate_rust_tests(&signature),
-            Python | Python3 => self.generate_python_tests(&signature),
-            _ => Err(TestGeneratorError::ProblemTestDataError),
+            _ => self.generate_python_tests(&signature),
         }
     }
 }

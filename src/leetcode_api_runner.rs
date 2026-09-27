@@ -86,16 +86,35 @@ impl LeetcodeApiRunner {
         let pb_desc = pb.description()?;
         let pb_name = pb_desc.name.replace(" ", "_");
         let md_desc = html2md::parse_html(&pb_desc.content);
-        let (pb_dir, src_dir, warning) =
+        let (pb_dir, src_dir, mut warning) =
             self.prepare_problem_dir(id, &pb_name, &lang)?;
 
         let mut starter_code = self.get_starter_code(&lang, &pb)?;
         starter_code = inject_default_return_value(&starter_code, &lang);
 
-        let test_data = LeetcodeReadmeParser::new(&md_desc).parse()?;
-        let tests = TestGenerator::new(&starter_code, test_data).run(&lang)?;
-
-        let mut file_content = format!("{starter_code}\n\n{tests}");
+        // Tests are a bonus, the problem is still set up without them.
+        let tests = LeetcodeReadmeParser::new(&md_desc)
+            .parse()
+            .map_err(io::Error::from)
+            .and_then(|test_data| {
+                TestGenerator::new(&starter_code, test_data)
+                    .run(&lang)
+                    .map_err(io::Error::from)
+            });
+        let mut file_content = match tests {
+            Ok(tests) => format!("{starter_code}\n\n{tests}"),
+            Err(e) => {
+                let test_warning = format!(
+                    "No tests generated for {}: {e}",
+                    language_to_string(&lang)
+                );
+                warning = Some(match warning {
+                    Some(w) => format!("{w}\n{test_warning}"),
+                    None => test_warning,
+                });
+                starter_code.clone()
+            },
+        };
         file_content = prefix_code(&file_content, &lang);
         file_content = postfix_code(&file_content, &lang);
         write_readme(&pb_dir, id, &pb_name, &md_desc)?;
