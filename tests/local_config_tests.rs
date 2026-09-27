@@ -143,6 +143,25 @@ fn test_get_main_file_case_insensitive() {
 }
 
 #[test]
+fn test_get_main_file_matches_start_file_name() {
+    use leetcode_cli::utils::{
+        get_file_name,
+        language_to_string,
+    };
+    use leetcoderustapi::ProgrammingLanguage::*;
+
+    for lang in [
+        CPP, Java, Python, Python3, C, CSharp, JavaScript, TypeScript, Ruby,
+        Swift, Go, Bash, Scala, Kotlin, Rust, PHP, Racket, Erlang, Elixir,
+        Dart, Pandas, React,
+    ] {
+        let config =
+            LocalConfig::new(1, "test".to_string(), language_to_string(&lang));
+        assert_eq!(config.get_main_file(), get_file_name(&lang), "{lang:?}");
+    }
+}
+
+#[test]
 fn test_resolve_problem_params_with_both_args() {
     let result = LocalConfig::resolve_problem_params(
         Some(42),

@@ -9,6 +9,11 @@ use serde::{
     Serialize,
 };
 
+use crate::utils::{
+    get_file_name,
+    parse_programming_language,
+};
+
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct LocalConfig {
     pub problem_id:   u32,
@@ -61,19 +66,12 @@ impl LocalConfig {
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
-    /// Get the main source file name based on language
+    /// Get the main source file name based on language, the same name `start`
+    /// writes the starter code to
     pub fn get_main_file(&self) -> String {
-        match self.language.to_lowercase().as_str() {
-            "rust" => "main.rs".to_string(),
-            "python" | "python3" => "main.py".to_string(),
-            "javascript" => "main.js".to_string(),
-            "typescript" => "main.ts".to_string(),
-            "go" => "main.go".to_string(),
-            "java" => "Main.java".to_string(),
-            "c++" => "main.cpp".to_string(),
-            "c" => "main.c".to_string(),
-            _ => "main.txt".to_string(),
-        }
+        parse_programming_language(&self.language)
+            .map(|lang| get_file_name(&lang))
+            .unwrap_or_else(|_| "main.txt".to_string())
     }
 
     /// Resolve problem ID and file path from CLI args or local config

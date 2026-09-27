@@ -63,7 +63,9 @@ pub fn parse_programming_language(
         "erlang" => Ok(leetcoderustapi::ProgrammingLanguage::Erlang),
         "elixir" => Ok(leetcoderustapi::ProgrammingLanguage::Elixir),
         "dart" => Ok(leetcoderustapi::ProgrammingLanguage::Dart),
-        "pandas" => Ok(leetcoderustapi::ProgrammingLanguage::Pandas),
+        "pandas" | "pythondata" => {
+            Ok(leetcoderustapi::ProgrammingLanguage::Pandas)
+        },
         "react" => Ok(leetcoderustapi::ProgrammingLanguage::React),
         _ => Err(io::Error::new(
             io::ErrorKind::InvalidInput,
