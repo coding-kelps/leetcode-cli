@@ -1,5 +1,6 @@
 use clap::Parser;
 use leetcode_cli::{
+    login::run_login,
     utils::{
         parse_programming_language,
         prompt_for_language,
@@ -18,6 +19,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     let mut rcs = RuntimeConfigSetup::new();
     rcs.status()?;
+
+    if let Commands::Login { browser } = &cli.command {
+        if let Some(browser) = browser {
+            std::env::set_var("LEETCODE_CLI_BROWSER", browser);
+        }
+        let spin = spin_the_spinner("Waiting for leetcode login...");
+        let result = run_login(&rcs).await;
+        stop_and_clear_spinner(spin);
+        match result {
+            Ok(message) => println!("{message}"),
+            Err(e) => eprintln!("Login failed: {e}"),
+        }
+        return Ok(());
+    }
+
+    if rcs.config.leetcode_token.is_empty() {
+        eprintln!(
+            "No LeetCode token found in {}.\nRun `leetcode-cli login` to log \
+             in once and save it automatically.",
+            rcs.config_file.display()
+        );
+        return Ok(());
+    }
+
     let api_runner = LeetcodeApiRunner::new(&rcs).await?;
 
     match &cli.command {
@@ -98,6 +123,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Ok(_) => println!("Submit result"),
                 Err(e) => eprintln!("Error submitting solution: {e}"),
             }
+        },
+        Commands::Login { .. } => {
+            unreachable!("login is handled before the command match")
         },
     }
     Ok(())

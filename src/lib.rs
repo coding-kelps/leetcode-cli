@@ -3,6 +3,7 @@ pub mod code_signature;
 pub mod config;
 pub mod leetcode_api_runner;
 pub mod local_config;
+pub mod login;
 pub mod readme_parser;
 pub mod result_formatter;
 pub mod test_generator;

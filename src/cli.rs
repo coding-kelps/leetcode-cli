@@ -11,6 +11,12 @@ pub struct Cli {
 
 #[derive(Subcommand, Debug)]
 pub enum Commands {
+    /// Log into leetcode once in a browser and save the token in the config
+    Login {
+        /// Browser executable to use instead of the auto-detected one
+        #[arg(short = 'b', long = "browser")]
+        browser: Option<String>,
+    },
     Info {
         #[arg(short = 'i', long)]
         id: u32,

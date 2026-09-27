@@ -1,1 +1,1 @@
-leetcode_token = ''
+leetcode_token = '' # run `leetcode-cli login` to fill this automatically, or paste your cookie manually (see README)

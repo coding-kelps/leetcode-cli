@@ -15,23 +15,23 @@ leetcode-cli info --id 42
 ```leetcode problem
 #42  -  Hard  -  Trapping Rain Water
 
-Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining. 
+Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it can trap after raining.
 
 
-Example 1:   
-Input: height = [0,1,0,2,1,0,1,3,2,1,2,1] 
-Output: 6 
-Explanation: The above elevation map (black section) is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water (blue section) are being trapped.  
+Example 1:
+Input: height = [0,1,0,2,1,0,1,3,2,1,2,1]
+Output: 6
+Explanation: The above elevation map (black section) is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water (blue section) are being trapped.
 
-Example 2:  
-Input: height = [4,2,0,3,2,5] 
-Output: 9  
+Example 2:
+Input: height = [4,2,0,3,2,5]
+Output: 9
 
 
-Constraints:  
-n == height.length 
-1 <= n <= 2 * 104 
-0 <= height[i] <= 105 
+Constraints:
+n == height.length
+1 <= n <= 2 * 104
+0 <= height[i] <= 105
 ```
 ---
 ```sh
@@ -71,6 +71,7 @@ fn main() {}
 
 ## Features
 
+- [x] One time login that captures and saves the token automatically (see ([#14](https://github.com/coding-kelps/leetcode-cli/issues/14)))
 - [ ] Automatic token generation / refresh (see ([#14](https://github.com/coding-kelps/leetcode-cli/issues/14)))
 - [x] Search problems
 - [x] Automatically create test cases based on the problem description
@@ -99,12 +100,39 @@ The configuration file is located at:
 and should look like this:
 
 ```toml
-leetcode_token='YOUR_TOKEN_HERE' # (In single quote!) obtained from the cookie section below
+leetcode_token='csrftoken=YOUR_CSRFTOKEN; LEETCODE_SESSION=YOUR_SESSION' # (In single quote!) obtained automatically by `leetcode-cli login` or from the cookie section below
 default_language="Rust" # could be any language supported by leetcode, re-prompted if not found for a given problem
 leetcode_dir_path="~/leetcode" # where to store the downloaded problems
 ```
 
-## Cookie
+## Login
+
+Instead of copying cookies by hand, run:
+
+```sh
+leetcode-cli login
+```
+
+- a chromium based browser opens on the leetcode login page, using a dedicated
+  profile stored in `~/.config/leetcode-cli/browser-profile`
+- log into your leetcode account in that browser
+- the cli polls the browser devtools protocol, grabs the `csrftoken` and
+  `LEETCODE_SESSION` cookies, validates them against leetcode and saves them in
+  the `leetcode_token` entry of your config file
+- the browser is closed automatically once the token is saved
+
+Because the browser profile persists, the next `leetcode-cli login` run will
+succeed instantly if your session is still valid, without any manual action.
+
+If no browser is detected, or you want to force one, use:
+
+```sh
+leetcode-cli login --browser google-chrome-stable
+```
+
+or set the `LEETCODE_CLI_BROWSER` environment variable.
+
+## Cookie (manual fallback)
 
 To obtain your LeetCode token, follow these steps:
 Login to LeetCode and obtain the csrftoken from the cookie value.
