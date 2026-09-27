@@ -82,6 +82,30 @@ fn test_every_language_has_a_string_and_extension() {
     assert_eq!(utils::get_file_name(&Elixir), "main.ex");
 }
 
+#[test]
+fn test_inject_default_return_value_rust() {
+    let starter = "impl Solution {\n    pub fn two_sum(nums: Vec<i32>, \
+                   target: i32) -> Vec<i32> {\n        \n    }\n}";
+    let result =
+        utils::inject_default_return_value(starter, &ProgrammingLanguage::Rust);
+    assert_eq!(
+        result,
+        "impl Solution {\n    pub fn two_sum(nums: Vec<i32>, target: i32) -> \
+         Vec<i32> {\n        todo!()\n    }\n}"
+    );
+}
+
+#[test]
+fn test_inject_default_return_value_keeps_non_empty_bodies() {
+    let starter =
+        "// impl ListNode {\n//   fn new(val: i32) -> Self {\n//     ListNode \
+         { next: None, val }\n//   }\n// }\nimpl Solution {\n    pub fn f() \
+         -> i32 {\n        1\n    }\n}";
+    let result =
+        utils::inject_default_return_value(starter, &ProgrammingLanguage::Rust);
+    assert_eq!(result, starter);
+}
+
 #[cfg(test)]
 mod file_operations {
     use std::fs;

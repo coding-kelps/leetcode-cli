@@ -229,20 +229,24 @@ pub fn postfix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
     format!("{file_content}\n{postfix}")
 }
 
-fn read_rust_ast(starter_code: &str) -> Result<String, io::Error> {
-    Ok(starter_code.to_string())
-}
-
+/// Fills empty function bodies so the starter code compiles: rust starter
+/// code comes with `{ }` bodies, which do not type check for functions
+/// returning a value. `todo!()` keeps the file compiling and makes the
+/// generated tests fail until the function is implemented.
 pub fn inject_default_return_value(
     starter_code: &str, lang: &ProgrammingLanguage,
 ) -> String {
     match lang {
         ProgrammingLanguage::Rust => {
-            let _ast = read_rust_ast(starter_code).unwrap_or_else(|_| {
-                panic!("Failed to read Rust AST from starter code")
-            });
-
-            starter_code.to_string()
+            let empty_fn = regex::Regex::new(r"(fn\s+\w+[^{};]*\{)(\s*)\}")
+                .expect("valid regex");
+            empty_fn
+                .replace_all(starter_code, |caps: &regex::Captures| {
+                    let indent =
+                        caps[2].rsplit('\n').next().unwrap_or("").to_string();
+                    format!("{}\n{indent}    todo!()\n{indent}}}", &caps[1])
+                })
+                .into_owned()
         },
         _ => starter_code.to_string(),
     }
