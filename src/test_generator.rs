@@ -172,9 +172,19 @@ impl TestGenerator {
             None => signature.return_type.as_deref(),
         };
 
+        // annotated so that empty outputs (`vec![]`) still type check
+        let expected_annotation = expected_type
+            .map(|ty| {
+                format!(
+                    ": {}",
+                    ty.trim_start_matches("&mut ").trim_start_matches('&')
+                )
+            })
+            .unwrap_or_default();
+
         for i in 0..self.test_case_count() {
             let mut body = format!(
-                "let expected = {};\n",
+                "let expected{expected_annotation} = {};\n",
                 CodeSignature::resolve_rust_typed_declaration(
                     &self.test_data.outputs[i],
                     expected_type,

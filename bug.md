@@ -26,3 +26,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] `ListNode` / `TreeNode` problems: the type definitions stay commented so the file does not compile, and list / tree inputs are generated as `vec![..]`
 - [x] the readme parser only reads the first line of `Input:`, multi-line inputs (eg the `grid` of number of islands) become `[`
 - [x] zero width spaces from the leetcode html end up in the generated literals and break the file (greatest common divisor of strings)
+- [x] empty expected outputs (`vec![]`) do not type check, the `expected` binding has no type annotation (3sum, combination sum)

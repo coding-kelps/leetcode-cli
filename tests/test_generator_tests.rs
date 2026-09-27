@@ -216,7 +216,7 @@ fn test_rust_in_place_problem_checks_mutated_parameter() {
     let mut generator = TestGenerator::new(&starter_code, test_data);
     let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
 
-    assert!(result.contains("let expected = vec!['e', 'h'];"));
+    assert!(result.contains("let expected: Vec<char> = vec!['e', 'h'];"));
     assert!(result.contains("let mut arg0 = vec!['h', 'e'];"));
     assert!(result.contains("Solution::reverse_string(&mut arg0);"));
     assert!(result.contains("assert_eq!(arg0, expected);"));
@@ -285,4 +285,21 @@ fn test_rust_plain_problem_adds_no_helper() {
 
     assert!(!result.contains("fn to_tree("));
     assert!(!result.contains("fn to_list("));
+}
+
+#[test]
+fn test_rust_expected_is_annotated_with_return_type() {
+    let starter_code = "impl Solution {\n    pub fn three_sum(nums: Vec<i32>) \
+                        -> Vec<Vec<i32>> {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[0,1,1]".to_string()],
+        outputs:       vec!["[]".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
+
+    assert!(result.contains("let expected: Vec<Vec<i32>> = vec![];"));
 }
