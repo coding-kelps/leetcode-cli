@@ -181,8 +181,9 @@ impl LeetcodeApiRunner {
         let file_content = std::fs::read_to_string(path_to_file)
             .expect("Unable to read the file");
         let language = get_language_from_extension(path_to_file);
+        let processed_code = preprocess_code(&file_content, &language);
 
-        let sub_res = pb.send_subm(language, &file_content).await?;
+        let sub_res = pb.send_subm(language, &processed_code).await?;
         println!("{id}: submit result {sub_res:?}");
         Ok(())
     }
