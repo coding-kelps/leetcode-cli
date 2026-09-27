@@ -66,6 +66,22 @@ fn test_language_to_string() {
     );
 }
 
+#[test]
+fn test_every_language_has_a_string_and_extension() {
+    use ProgrammingLanguage::*;
+    for lang in [
+        CPP, Java, Python, Python3, C, CSharp, JavaScript, TypeScript, Ruby,
+        Swift, Go, Bash, Scala, Kotlin, Rust, PHP, Racket, Erlang, Elixir,
+        Dart, Pandas, React,
+    ] {
+        assert!(!utils::language_to_string(&lang).is_empty());
+        assert!(!utils::get_extension_from_language(&lang).is_empty());
+    }
+    assert_eq!(utils::language_to_string(&Pandas), "pythondata");
+    assert_eq!(utils::get_file_name(&Racket), "main.rkt");
+    assert_eq!(utils::get_file_name(&Elixir), "main.ex");
+}
+
 #[cfg(test)]
 mod file_operations {
     use std::fs;

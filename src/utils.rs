@@ -101,7 +101,15 @@ pub fn language_to_string(
         leetcoderustapi::ProgrammingLanguage::Kotlin => "kotlin".to_string(),
         leetcoderustapi::ProgrammingLanguage::Rust => "rust".to_string(),
         leetcoderustapi::ProgrammingLanguage::PHP => "php".to_string(),
-        _ => panic!("Unsupported language"),
+        leetcoderustapi::ProgrammingLanguage::Racket => "racket".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Erlang => "erlang".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Elixir => "elixir".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Dart => "dart".to_string(),
+        // leetcode code snippets use "pythondata" as slug for pandas
+        leetcoderustapi::ProgrammingLanguage::Pandas => {
+            "pythondata".to_string()
+        },
+        leetcoderustapi::ProgrammingLanguage::React => "react".to_string(),
     }
 }
 
@@ -155,7 +163,12 @@ pub fn get_extension_from_language(
         leetcoderustapi::ProgrammingLanguage::Kotlin => "kt".to_string(),
         leetcoderustapi::ProgrammingLanguage::Rust => "rs".to_string(),
         leetcoderustapi::ProgrammingLanguage::PHP => "php".to_string(),
-        _ => panic!("Unsupported language: {lang:?}"),
+        leetcoderustapi::ProgrammingLanguage::Racket => "rkt".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Erlang => "erl".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Elixir => "ex".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Dart => "dart".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Pandas => "py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::React => "jsx".to_string(),
     }
 }
 
