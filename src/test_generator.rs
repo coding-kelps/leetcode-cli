@@ -84,6 +84,25 @@ impl TestGenerator {
             .min(self.test_data.outputs.len())
     }
 
+    /// `2, nums = [1,2,_]` -> (`2`, `nums`, `[1,2]`), the `_` being the
+    /// elements the judge ignores.
+    fn parse_custom_judge_output(
+        output: &str,
+    ) -> Option<(String, String, String)> {
+        let re = regex::Regex::new(
+            r"^\s*([^,\[\]]+?)\s*,\s*([A-Za-z_]\w*)\s*=\s*\[(.*)\]\s*$",
+        )
+        .expect("valid regex");
+        let caps = re.captures(output)?;
+        let array = caps[3]
+            .split(',')
+            .map(str::trim)
+            .filter(|value| *value != "_" && !value.is_empty())
+            .collect::<Vec<_>>()
+            .join(",");
+        Some((caps[1].to_string(), caps[2].to_string(), format!("[{array}]")))
+    }
+
     fn split_input_parameters(&self, input: &str) -> Vec<String> {
         let mut parameters = Vec::new();
         let mut current = String::new();
@@ -188,13 +207,30 @@ impl TestGenerator {
             .unwrap_or_default();
 
         for i in 0..self.test_case_count() {
-            let mut body = format!(
-                "let expected{expected_annotation} = {};\n",
+            let mut lines = Vec::new();
+            let output = &self.test_data.outputs[i];
+
+            // custom judge outputs, eg remove duplicates: `2, nums = [1,2,_]`
+            // is the returned length and the first elements of `nums`
+            let custom_judge = Self::parse_custom_judge_output(output)
+                .and_then(|(value, name, array)| {
+                    let j = signature.parameters.iter().position(|p| {
+                        p.split_once(':').is_some_and(|(n, ty)| {
+                            n.trim() == name && ty.trim().starts_with("&mut ")
+                        })
+                    })?;
+                    Some((value, j, array))
+                });
+            let expected_output =
+                custom_judge.as_ref().map_or(output.as_str(), |(v, ..)| v);
+
+            lines.push(format!(
+                "let expected{expected_annotation} = {};",
                 CodeSignature::resolve_rust_typed_declaration(
-                    &self.test_data.outputs[i],
+                    expected_output,
                     expected_type,
                 )
-            );
+            ));
 
             // Split input parameters and convert each one with its type
             let input_params =
@@ -211,9 +247,7 @@ impl TestGenerator {
                 );
                 match rust_type {
                     Some(ty) if ty.starts_with("&mut ") => {
-                        body.push_str(&format!(
-                            "        let mut arg{j} = {value};\n"
-                        ));
+                        lines.push(format!("let mut arg{j} = {value};"));
                         arguments.push(format!("&mut arg{j}"));
                     },
                     Some(ty) if ty.starts_with('&') => {
@@ -229,17 +263,45 @@ impl TestGenerator {
                 arguments.join(", ")
             );
             match mutated {
-                Some(j) => body.push_str(&format!(
-                    "        {call};\n        assert_eq!(arg{j}, expected);\n"
-                )),
-                None => body.push_str(&format!(
-                    "        let result = {call};\n        assert_eq!(result, \
-                     expected);\n"
-                )),
+                Some(j) => {
+                    lines.push(format!("{call};"));
+                    lines.push(format!("assert_eq!(arg{j}, expected);"));
+                },
+                None => {
+                    lines.push(format!("let result = {call};"));
+                    lines.push("assert_eq!(result, expected);".to_string());
+                },
             }
-            tests
-                .push(format!(
-                "    #[test]\n    fn test_case_{i}() {{\n        {body}    }}\n"
+
+            if let Some((_, j, array)) = &custom_judge {
+                let element_type = parameter_types[*j]
+                    .as_deref()
+                    .map(|ty| ty.trim_start_matches("&mut ").trim());
+                lines.push(format!(
+                    "let mut expected_arg{j}{} = {};",
+                    element_type
+                        .map(|ty| format!(": {ty}"))
+                        .unwrap_or_default(),
+                    CodeSignature::resolve_rust_typed_declaration(
+                        array,
+                        element_type,
+                    )
+                ));
+                // the judge sorts the first elements before comparing them
+                lines.push(format!(
+                    "let mut head = arg{j}[..expected_arg{j}.len()].to_vec();"
+                ));
+                lines.push("head.sort();".to_string());
+                lines.push(format!("expected_arg{j}.sort();"));
+                lines.push(format!("assert_eq!(head, expected_arg{j});"));
+            }
+
+            let body = lines
+                .iter()
+                .map(|line| format!("        {line}\n"))
+                .collect::<String>();
+            tests.push(format!(
+                "    #[test]\n    fn test_case_{i}() {{\n{body}    }}\n"
             ));
         }
         let tests = tests.join("\n");

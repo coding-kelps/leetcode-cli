@@ -322,3 +322,27 @@ fn test_rust_inputs_not_matching_parameters_is_an_error() {
         TestGeneratorError::InputMismatch
     );
 }
+
+#[test]
+fn test_rust_custom_judge_output_checks_length_and_head() {
+    let starter_code = "impl Solution {\n    pub fn remove_element(nums: &mut \
+                        Vec<i32>, val: i32) -> i32 {\n        todo!()\n    \
+                        }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[3,2,2,3],3".to_string()],
+        outputs:       vec!["2, nums = [2,2,_,_]".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Rust).unwrap();
+
+    assert!(result.contains("let expected: i32 = 2;"));
+    assert!(result.contains("assert_eq!(result, expected);"));
+    assert!(result.contains("let mut expected_arg0: Vec<i32> = vec![2, 2];"));
+    assert!(
+        result.contains("let mut head = arg0[..expected_arg0.len()].to_vec();")
+    );
+    assert!(result.contains("assert_eq!(head, expected_arg0);"));
+}
