@@ -69,8 +69,8 @@ fn test_python_class_parsing() {
 
 #[test]
 fn test_rust_function_parsing() {
-    let starter_code = "fn two_sum(nums: Vec<i32>, target: i32) -> Vec<i32> \
-                        {\n    vec![]\n}"
+    let starter_code = "impl Solution {\n    pub fn two_sum(nums: Vec<i32>, \
+                        target: i32) -> Vec<i32> {\n        vec![]\n    }\n}"
         .to_string();
     let test_data = ProblemTestData {
         example_count: 1,
@@ -90,8 +90,9 @@ fn test_rust_function_parsing() {
 
 #[test]
 fn test_rust_multiple_arrays_parsing() {
-    let starter_code = "fn find_median_sorted_arrays(nums1: Vec<i32>, nums2: \
-                        Vec<i32>) -> f64 {\n    0.0\n}"
+    let starter_code = "impl Solution {\n    pub fn \
+                        find_median_sorted_arrays(nums1: Vec<i32>, nums2: \
+                        Vec<i32>) -> f64 {\n        0.0\n    }\n}"
         .to_string();
     let test_data = ProblemTestData {
         example_count: 1,

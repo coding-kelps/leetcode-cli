@@ -53,9 +53,9 @@ fn test_parse_rust_signature_generic_parameters() {
 
 #[test]
 fn test_parse_rust_signature_without_parameters_does_not_panic() {
-    let starter = "impl MinStack {\n    fn new() -> Self {\n    }\n}";
+    let starter = "impl Solution {\n    pub fn f() -> i32 {\n    }\n}";
     let sig = CodeSignature::parse_code_signature(&Rust, starter).unwrap();
-    assert_eq!(sig.function_name, "new");
+    assert_eq!(sig.function_name, "f");
     assert!(sig.parameters.is_empty());
 }
 
@@ -70,6 +70,53 @@ fn test_parse_python_signature_without_parameters_does_not_panic() {
 
 #[test]
 fn test_parse_signature_without_parenthesis_is_an_error() {
-    assert!(CodeSignature::parse_code_signature(&Rust, "fn broken").is_err());
+    assert!(CodeSignature::parse_code_signature(
+        &Rust,
+        "impl Solution { fn broken }"
+    )
+    .is_err());
     assert!(CodeSignature::parse_code_signature(&Python, "def broken").is_err());
+}
+
+#[test]
+fn test_parse_rust_signature_skips_commented_list_node() {
+    let starter = "// Definition for singly-linked list.
+// #[derive(PartialEq, Eq, Clone, Debug)]
+// pub struct ListNode {
+//   pub val: i32,
+//   pub next: Option<Box<ListNode>>
+// }
+//
+// impl ListNode {
+//   #[inline]
+//   fn new(val: i32) -> Self {
+//     ListNode {
+//       next: None,
+//       val
+//     }
+//   }
+// }
+impl Solution {
+    pub fn add_two_numbers(l1: Option<Box<ListNode>>, l2: \
+                   Option<Box<ListNode>>) -> Option<Box<ListNode>> {
+
+    }
+}";
+    let sig = CodeSignature::parse_code_signature(&Rust, starter).unwrap();
+    assert_eq!(sig.function_name, "add_two_numbers");
+    assert_eq!(sig.parameters, vec![
+        "l1: Option<Box<ListNode>>",
+        "l2: Option<Box<ListNode>>"
+    ]);
+}
+
+#[test]
+fn test_parse_rust_signature_design_problem_is_an_error() {
+    let starter = "struct MinStack {\n\n}\n\n/**\n * `&self` means the method \
+                   takes an immutable reference.\n */\nimpl MinStack {\n    \
+                   fn new() -> Self {\n        \n    }\n}";
+    assert_eq!(
+        CodeSignature::parse_code_signature(&Rust, starter).unwrap_err(),
+        CodeSignatureError::NoSolution
+    );
 }

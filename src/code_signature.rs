@@ -15,6 +15,10 @@ pub struct CodeSignature {
 pub enum CodeSignatureError {
     #[error("Error parsing code signature")]
     ParseError,
+    #[error(
+        "no `impl Solution` found, tests are not generated for design problems"
+    )]
+    NoSolution,
 }
 
 impl CodeSignature {
@@ -87,12 +91,24 @@ impl CodeSignature {
     fn parse_rust_signature(
         starter_code: &str,
     ) -> Result<CodeSignature, CodeSignatureError> {
-        if let Some(start) = starter_code.find("fn ") {
-            let (fn_name, parameters) =
-                Self::parse_name_and_parameters(&starter_code[start + 3..])?;
-            return Ok(CodeSignature::new_function(fn_name, parameters));
-        }
-        Err(CodeSignatureError::ParseError)
+        // skip the commented ListNode / TreeNode definitions and their
+        // `fn new`, the tests call the method of `impl Solution`
+        let code = Self::strip_rust_comments(starter_code);
+        let solution =
+            code.find("impl Solution").ok_or(CodeSignatureError::NoSolution)?;
+        let start = code[solution..]
+            .find("fn ")
+            .ok_or(CodeSignatureError::ParseError)?
+            + solution;
+        let (fn_name, parameters) =
+            Self::parse_name_and_parameters(&code[start + 3..])?;
+        Ok(CodeSignature::new_function(fn_name, parameters))
+    }
+
+    fn strip_rust_comments(code: &str) -> String {
+        let block = regex::Regex::new(r"(?s)/\*.*?\*/").expect("valid regex");
+        let line = regex::Regex::new(r"(?m)//.*$").expect("valid regex");
+        line.replace_all(&block.replace_all(code, ""), "").into_owned()
     }
 
     /// Parses `name(param, param)` at the start of `code` into the function

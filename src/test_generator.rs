@@ -17,6 +17,8 @@ pub struct TestGenerator {
 pub enum TestGeneratorError {
     #[error("Error creating tests")]
     ProblemTestDataError,
+    #[error(transparent)]
+    Signature(#[from] CodeSignatureError),
     #[error("test generation is not supported for this language yet")]
     UnsupportedLanguage,
 }
@@ -24,12 +26,6 @@ pub enum TestGeneratorError {
 impl From<TestGeneratorError> for std::io::Error {
     fn from(e: TestGeneratorError) -> Self {
         std::io::Error::new(std::io::ErrorKind::InvalidData, e)
-    }
-}
-
-impl From<CodeSignatureError> for TestGeneratorError {
-    fn from(_: CodeSignatureError) -> Self {
-        TestGeneratorError::ProblemTestDataError
     }
 }
 
