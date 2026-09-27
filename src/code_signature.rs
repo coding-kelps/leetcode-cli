@@ -62,31 +62,22 @@ impl CodeSignature {
                 class_line.strip_prefix("class ").map(|s| s.trim())
             {
                 if let Some(def_start) = starter_code.find("def ") {
-                    let def_end =
-                        starter_code[def_start..].find('(').unwrap_or(0)
-                            + def_start;
-                    let method_name =
-                        starter_code[def_start + 4..def_end].trim();
+                    let (method_name, _) = Self::parse_name_and_parameters(
+                        &starter_code[def_start + 4..],
+                    )?;
 
                     if method_name != "__init__" {
                         return Ok(CodeSignature::new_class(
                             class_name.to_string(),
-                            method_name.to_string(),
+                            method_name,
                         ));
                     }
                 }
             }
         }
         if let Some(start) = starter_code.find("def ") {
-            let end = starter_code[start..].find('(').unwrap_or(0) + start;
-            let fn_name = starter_code[start + 4..end].trim().to_string();
-            let parameters = starter_code[end + 1..]
-                .find(')')
-                .map(|p| &starter_code[end + 1..end + p])
-                .unwrap_or("")
-                .split(',')
-                .map(|s| s.trim().to_string())
-                .collect::<Vec<String>>();
+            let (fn_name, parameters) =
+                Self::parse_name_and_parameters(&starter_code[start + 4..])?;
             return Ok(CodeSignature::new_function(fn_name, parameters));
         }
 
@@ -97,16 +88,50 @@ impl CodeSignature {
         starter_code: &str,
     ) -> Result<CodeSignature, CodeSignatureError> {
         if let Some(start) = starter_code.find("fn ") {
-            let end = starter_code[start..].find('(').unwrap_or(0) + start;
-            let fn_name = starter_code[start + 3..end].trim().to_string();
-            let parameters = starter_code[end + 1..]
-                .find(')')
-                .map(|p| &starter_code[end + 1..end + p])
-                .unwrap_or("")
-                .split(',')
-                .map(|s| s.trim().to_string())
-                .collect::<Vec<String>>();
+            let (fn_name, parameters) =
+                Self::parse_name_and_parameters(&starter_code[start + 3..])?;
             return Ok(CodeSignature::new_function(fn_name, parameters));
+        }
+        Err(CodeSignatureError::ParseError)
+    }
+
+    /// Parses `name(param, param)` at the start of `code` into the function
+    /// name and the list of its parameters, splitting on top level commas
+    /// only (`HashMap<i32, i32>` stays one parameter).
+    fn parse_name_and_parameters(
+        code: &str,
+    ) -> Result<(String, Vec<String>), CodeSignatureError> {
+        let open = code.find('(').ok_or(CodeSignatureError::ParseError)?;
+        let fn_name = code[..open].trim().to_string();
+        if fn_name.is_empty() {
+            return Err(CodeSignatureError::ParseError);
+        }
+
+        let mut parameters = Vec::new();
+        let mut current = String::new();
+        let mut depth = 0;
+        let mut previous = ' ';
+        for ch in code[open + 1..].chars() {
+            match ch {
+                '(' | '<' | '[' => depth += 1,
+                ')' if depth == 0 => {
+                    if !current.trim().is_empty() {
+                        parameters.push(current.trim().to_string());
+                    }
+                    return Ok((fn_name, parameters));
+                },
+                // `->` is not a closing bracket
+                '>' if previous == '-' => {},
+                ')' | '>' | ']' => depth -= 1,
+                ',' if depth == 0 => {
+                    parameters.push(current.trim().to_string());
+                    current.clear();
+                    continue;
+                },
+                _ => {},
+            }
+            previous = ch;
+            current.push(ch);
         }
         Err(CodeSignatureError::ParseError)
     }
