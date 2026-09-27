@@ -177,6 +177,19 @@ fn test_uncomment_local_definitions_rust() {
 }
 
 #[test]
+fn test_uncomment_local_definitions_list_and_tree() {
+    let starter = "// Definition for singly-linked list.\n// pub struct \
+                   ListNode {}\n// Definition for a binary tree node.\n// pub \
+                   struct TreeNode {}\nimpl Solution {}";
+    let result =
+        utils::uncomment_local_definitions(starter, &ProgrammingLanguage::Rust);
+    assert!(
+        result.contains("\npub struct ListNode {}\npub struct TreeNode {}\n")
+    );
+    assert!(!result.contains("Definition for"));
+}
+
+#[test]
 fn test_uncomment_local_definitions_without_definitions() {
     let starter =
         "impl Solution {\n    pub fn f() -> i32 {\n        todo!()\n    }\n}";

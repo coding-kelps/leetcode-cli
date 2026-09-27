@@ -282,6 +282,10 @@ pub fn uncomment_local_definitions(
     result.push(LOCAL_DEFINITIONS_START.to_string());
     for line in &lines[start + 1..end] {
         let code = line.trim_start_matches("//");
+        // A second block (list and tree) has its own `Definition for` title.
+        if code.trim_start().starts_with("Definition for") {
+            continue;
+        }
         result.push(code.strip_prefix(' ').unwrap_or(code).to_string());
     }
     result.push(LOCAL_DEFINITIONS_END.to_string());
