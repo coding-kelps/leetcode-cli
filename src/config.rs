@@ -63,7 +63,7 @@ impl RuntimeConfigSetup {
     }
 
     /// Saves the leetcode token into the config file, in the leetcode_token
-    /// entry, preserving the rest of the file as is.
+    /// entry, preserving the rest of the file (other keys, comments) as is.
     pub fn write_token_to_file(
         config_file: &PathBuf, token: &str,
     ) -> io::Result<()> {
@@ -73,23 +73,20 @@ impl RuntimeConfigSetup {
             )?;
             std::fs::File::create(config_file)?;
         }
-        if token.contains('\'') {
-            return Err(io::Error::other("Token cannot contain single quotes"));
-        }
         let raw = std::fs::read_to_string(config_file)?;
-        let token_line = regex::Regex::new(r"(?m)^leetcode_token\s*=.*$")
+        let mut doc = raw
+            .parse::<toml_edit::DocumentMut>()
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        let content: String = if token_line.is_match(&raw) {
-            token_line
-                .replace(&raw, format!("leetcode_token = '{token}'"))
-                .into_owned()
-        } else if raw.trim().is_empty() {
-            format!("leetcode_token = '{token}'\n")
-        } else {
-            let separator = if raw.ends_with('\n') { "" } else { "\n" };
-            format!("{raw}{separator}leetcode_token = '{token}'\n")
-        };
-        std::fs::write(config_file, content)
+
+        let mut new_value = toml_edit::Value::from(token);
+        if let Some(old_value) =
+            doc.get("leetcode_token").and_then(|item| item.as_value())
+        {
+            *new_value.decor_mut() = old_value.decor().clone();
+        }
+        doc["leetcode_token"] = toml_edit::Item::Value(new_value);
+
+        std::fs::write(config_file, doc.to_string())
     }
     /// check for a config file in ~/.config/leetcode-cli/config.toml
     /// read it or create it with default values if it doesn't exist

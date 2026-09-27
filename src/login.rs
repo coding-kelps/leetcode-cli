@@ -264,19 +264,22 @@ mod tests {
         );
     }
 
+    fn read_token(config_file: &PathBuf) -> String {
+        let content = std::fs::read_to_string(config_file).unwrap();
+        let doc: toml::Table = toml::from_str(&content).unwrap();
+        doc["leetcode_token"].as_str().unwrap().to_string()
+    }
+
     #[test]
     fn test_write_token_to_file_creates_and_updates() {
         let dir = tempfile::TempDir::new().unwrap();
         let config_file: PathBuf = dir.path().join("config.toml");
 
         RuntimeConfigSetup::write_token_to_file(&config_file, "tok").unwrap();
-        let content = std::fs::read_to_string(&config_file).unwrap();
-        assert!(content.contains("leetcode_token = 'tok'"));
+        assert_eq!(read_token(&config_file), "tok");
 
         RuntimeConfigSetup::write_token_to_file(&config_file, "tok2").unwrap();
-        let content = std::fs::read_to_string(&config_file).unwrap();
-        assert!(content.contains("leetcode_token = 'tok2'"));
-        assert!(!content.contains("'tok'"));
+        assert_eq!(read_token(&config_file), "tok2");
     }
 
     #[test]
@@ -285,13 +288,26 @@ mod tests {
         let config_file = dir.path().join("config.toml");
         std::fs::write(
             &config_file,
-            "leetcode_token = 'old'\ndefault_language = 'Rust'\n",
+            "# my config\nleetcode_token = 'old' # keep me\ndefault_language \
+             = 'Rust'\n",
         )
         .unwrap();
 
         RuntimeConfigSetup::write_token_to_file(&config_file, "new").unwrap();
         let content = std::fs::read_to_string(&config_file).unwrap();
+        assert!(content.contains("# my config"));
+        assert!(content.contains("# keep me"));
         assert!(content.contains("default_language = 'Rust'"));
-        assert!(content.contains("leetcode_token = 'new'"));
+        assert_eq!(read_token(&config_file), "new");
+    }
+
+    #[test]
+    fn test_write_token_to_file_escapes_quotes() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let config_file = dir.path().join("config.toml");
+
+        RuntimeConfigSetup::write_token_to_file(&config_file, "a'b\"c")
+            .unwrap();
+        assert_eq!(read_token(&config_file), "a'b\"c");
     }
 }
