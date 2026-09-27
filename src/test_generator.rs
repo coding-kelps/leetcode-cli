@@ -153,7 +153,7 @@ impl TestGenerator {
 
         match lang {
             Rust => self.generate_rust_tests(&signature),
-            Python => self.generate_python_tests(&signature),
+            Python | Python3 => self.generate_python_tests(&signature),
             _ => Err(TestGeneratorError::ProblemTestDataError),
         }
     }

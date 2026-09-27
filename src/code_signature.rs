@@ -40,7 +40,7 @@ impl CodeSignature {
         lang: &ProgrammingLanguage, starter_code: &str,
     ) -> Result<CodeSignature, CodeSignatureError> {
         match lang {
-            ProgrammingLanguage::Python => {
+            ProgrammingLanguage::Python | ProgrammingLanguage::Python3 => {
                 Self::parse_python_signature(starter_code)
             },
             ProgrammingLanguage::Rust => {

@@ -146,3 +146,24 @@ fn test_python_test_generation_class() {
         result.contains("assert Solution().two_sum([2,7,11,15], 9) == [0,1]")
     );
 }
+
+#[test]
+fn test_python3_test_generation_class() {
+    let starter_code = r#"class Solution:
+    def twoSum(self, nums: List[int], target: int) -> List[int]:
+        "#
+    .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[2,7,11,15], 9".to_string()],
+        outputs:       vec!["[0,1]".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Python3).unwrap();
+
+    assert!(result.contains("def test_case_0():"));
+    assert!(
+        result.contains("assert Solution().twoSum([2,7,11,15], 9) == [0,1]")
+    );
+}
