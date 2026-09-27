@@ -184,3 +184,19 @@ fn test_unsupported_language_returns_unsupported_error() {
 
     assert_eq!(result.unwrap_err(), TestGeneratorError::UnsupportedLanguage);
 }
+
+#[test]
+fn test_more_examples_than_inputs_does_not_panic() {
+    let starter_code = "def two_sum(nums, target):\n    pass".to_string();
+    let test_data = ProblemTestData {
+        example_count: 3,
+        inputs:        vec!["[2,7,11,15], 9".to_string()],
+        outputs:       vec!["[0,1]".to_string(), "[1,2]".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    let result = generator.run(&ProgrammingLanguage::Python).unwrap();
+
+    assert!(result.contains("def test_case_0():"));
+    assert!(!result.contains("def test_case_1():"));
+}

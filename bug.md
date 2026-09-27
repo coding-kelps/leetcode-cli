@@ -10,3 +10,4 @@ Ordered from easiest to hardest fix.
 - [x] `language_to_string` and `get_extension_from_language` panic on racket, erlang, elixir, dart, pandas and react even though `parse_programming_language` accepts them
 - [x] `LocalConfig::get_main_file` matches `c++` while `language_to_string` writes `cpp`, and has no arm for csharp, ruby, swift, kotlin, scala, bash, php..., so those fall back to `main.txt` and `test` / `submit` without `-p` point to a missing file
 - [x] `TestGenerator::run` returns an error for any language other than rust / python, and `start_problem` propagates it with `?`, so `start` fails for every other language
+- [x] test generators index `inputs[i]` / `outputs[i]` up to `example_count`, which is counted separately from the `**Example` lines, so a readme with a missing Input / Output line panics with index out of bounds

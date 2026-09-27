@@ -38,6 +38,15 @@ impl TestGenerator {
         TestGenerator { starter_code: starter_code.to_owned(), test_data }
     }
 
+    /// Number of examples that have both an input and an output, so a readme
+    /// with a missing Input / Output line does not index out of bounds.
+    fn test_case_count(&self) -> usize {
+        self.test_data
+            .example_count
+            .min(self.test_data.inputs.len())
+            .min(self.test_data.outputs.len())
+    }
+
     fn split_input_parameters(&self, input: &str) -> Vec<String> {
         let mut parameters = Vec::new();
         let mut current = String::new();
@@ -79,7 +88,7 @@ impl TestGenerator {
         &self, signature: &CodeSignature,
     ) -> Result<String, TestGeneratorError> {
         let mut tests = String::new();
-        for i in 0..self.test_data.example_count {
+        for i in 0..self.test_case_count() {
             let test_call = if signature.class_name.is_some() {
                 if let Some(class_name) = &signature.class_name {
                     format!(
@@ -115,7 +124,7 @@ impl TestGenerator {
         let mut tests =
             "#[cfg(test)]\nmod tests {\n\n\tuse super::*;\n\n".to_string();
 
-        for i in 0..self.test_data.example_count {
+        for i in 0..self.test_case_count() {
             let expect = format!(
                 "let expected = {};\n",
                 CodeSignature::resolve_declaration(
