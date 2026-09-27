@@ -220,3 +220,12 @@ fn test_preprocess_code_removes_local_definitions() {
     assert!(!sent.contains("fn main"));
     assert!(sent.contains("pub fn reverse_list"));
 }
+
+#[test]
+fn test_prefix_code_keeps_a_design_solution_struct() {
+    let rust = ProgrammingLanguage::Rust;
+    let design = "struct Solution {\n\n}\n";
+    assert_eq!(utils::prefix_code(design, &rust), format!("\n{design}"));
+    assert!(utils::prefix_code("impl Solution {}", &rust)
+        .starts_with("pub struct Solution;"));
+}

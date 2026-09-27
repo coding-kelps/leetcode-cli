@@ -34,3 +34,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] starters with both a list and a tree definition (109) keep the second `Definition for` title uncommented, the file does not compile
 - [x] a misspelled `Explantion:` line (1017) is read as part of the output, the output now stops at any `Word:` line
 - [x] `&self` methods calling a judge api (278 isBadVersion) get tests passing the inputs as the method arguments, they are now skipped like interactive problems
+- [x] design problems naming their class `Solution` (384 398 478 519 528 710) get a second `pub struct Solution;` and tests calling `new`, the prefix is skipped and so are the tests

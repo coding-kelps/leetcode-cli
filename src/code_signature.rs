@@ -94,6 +94,10 @@ impl CodeSignature {
         // skip the commented ListNode / TreeNode definitions and their
         // `fn new`, the tests call the method of `impl Solution`
         let code = Self::strip_rust_comments(starter_code);
+        // a design problem can name its own class `Solution` (384, 398)
+        if code.contains("struct Solution") {
+            return Err(CodeSignatureError::NoSolution);
+        }
         let solution =
             code.find("impl Solution").ok_or(CodeSignatureError::NoSolution)?;
         let start = code[solution..]

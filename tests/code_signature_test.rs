@@ -222,3 +222,13 @@ fn test_resolve_rust_typed_declaration_list_and_tree() {
         "to_tree(vec![])"
     );
 }
+
+#[test]
+fn test_parse_rust_signature_design_problem_named_solution_is_an_error() {
+    let starter = "struct Solution {\n\n}\n\nimpl Solution {\n    fn \
+                   new(nums: Vec<i32>) -> Self {\n        \n    }\n}";
+    assert_eq!(
+        CodeSignature::parse_code_signature(&Rust, starter).unwrap_err(),
+        CodeSignatureError::NoSolution
+    );
+}

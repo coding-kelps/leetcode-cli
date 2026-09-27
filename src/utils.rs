@@ -215,7 +215,12 @@ pub fn prompt_for_language(
 
 pub fn prefix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
     let prefix = match lang {
-        ProgrammingLanguage::Rust => "pub struct Solution;\n\n".to_string(),
+        // design problems can define their own `struct Solution` (384)
+        ProgrammingLanguage::Rust
+            if !file_content.contains("struct Solution") =>
+        {
+            "pub struct Solution;\n\n".to_string()
+        },
         _ => "".to_string(),
     };
     format!("{prefix}\n{file_content}")
