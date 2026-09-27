@@ -332,3 +332,17 @@ fn test_zero_width_spaces_are_removed() {
     assert_eq!(data.inputs, vec!["\"ab\""]);
     assert_eq!(data.outputs, vec!["\"\""]);
 }
+
+#[test]
+fn test_any_order_is_detected() {
+    assert!(LeetcodeReadmeParser::new(
+        "You can return the answer in any order."
+    )
+    .any_order());
+    assert!(LeetcodeReadmeParser::new(
+        "Notice that the order of the output and the order of the triplets \
+         does not matter."
+    )
+    .any_order());
+    assert!(!LeetcodeReadmeParser::new("Return the sorted array.").any_order());
+}

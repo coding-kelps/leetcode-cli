@@ -94,11 +94,11 @@ impl LeetcodeApiRunner {
         starter_code = uncomment_local_definitions(&starter_code, &lang);
 
         // Tests are a bonus, the problem is still set up without them.
-        let tests = LeetcodeReadmeParser::new(&md_desc)
-            .parse()
-            .map_err(io::Error::from)
-            .and_then(|test_data| {
+        let readme = LeetcodeReadmeParser::new(&md_desc);
+        let tests =
+            readme.parse().map_err(io::Error::from).and_then(|test_data| {
                 TestGenerator::new(&starter_code, test_data)
+                    .any_order(readme.any_order())
                     .run(&lang)
                     .map_err(io::Error::from)
             });

@@ -47,6 +47,7 @@ const RUST_TO_TREE: &str = "    fn to_tree(
 pub struct TestGenerator {
     starter_code: String,
     test_data:    ProblemTestData,
+    any_order:    bool,
 }
 
 #[derive(thiserror::Error, Debug, Clone, Copy, PartialEq, Eq)]
@@ -72,7 +73,18 @@ impl From<TestGeneratorError> for std::io::Error {
 
 impl TestGenerator {
     pub fn new(starter_code: &str, test_data: ProblemTestData) -> Self {
-        TestGenerator { starter_code: starter_code.to_owned(), test_data }
+        TestGenerator {
+            starter_code: starter_code.to_owned(),
+            test_data,
+            any_order: false,
+        }
+    }
+
+    /// The answer can be returned in any order, so vectors are sorted
+    /// before being compared.
+    pub fn any_order(mut self, any_order: bool) -> Self {
+        self.any_order = any_order;
+        self
     }
 
     /// Number of examples that have both an input and an output, so a readme
@@ -86,10 +98,30 @@ impl TestGenerator {
 
     /// Compares `actual` with `expected`, floats with the 1e-5 tolerance
     /// leetcode uses.
-    fn rust_assertion(actual: &str, rust_type: Option<&str>) -> Vec<String> {
+    fn rust_assertion(
+        actual: &str, rust_type: Option<&str>, any_order: bool,
+    ) -> Vec<String> {
         let rust_type = rust_type
             .map(|ty| ty.trim_start_matches("&mut ").replace(' ', ""))
             .unwrap_or_default();
+        if any_order {
+            if let Some(nested) = Self::sortable_vec(&rust_type) {
+                let mut lines = vec![
+                    format!("let mut {actual} = {actual};"),
+                    "let mut expected = expected;".to_string(),
+                ];
+                for side in [actual, "expected"] {
+                    if nested {
+                        lines.push(format!(
+                            "{side}.iter_mut().for_each(|v| v.sort());"
+                        ));
+                    }
+                    lines.push(format!("{side}.sort();"));
+                }
+                lines.push(format!("assert_eq!({actual}, expected);"));
+                return lines;
+            }
+        }
         match rust_type.as_str() {
             "f64" | "f32" => vec![format!(
                 "assert!(({actual} - expected).abs() < 1e-5, \"{{}} != \
@@ -105,6 +137,21 @@ impl TestGenerator {
             ],
             _ => vec![format!("assert_eq!({actual}, expected);")],
         }
+    }
+
+    /// `Some(nested)` when `rust_type` is a vector whose elements can be
+    /// sorted, `nested` telling the inner vectors must be sorted too.
+    fn sortable_vec(rust_type: &str) -> Option<bool> {
+        let inner = rust_type.strip_prefix("Vec<")?.strip_suffix('>')?;
+        let (nested, element) = match inner
+            .strip_prefix("Vec<")
+            .and_then(|i| i.strip_suffix('>'))
+        {
+            Some(element) => (true, element),
+            None => (false, inner),
+        };
+        let unordered = ["f64", "f32", "Node"];
+        (!unordered.iter().any(|ty| element.contains(ty))).then_some(nested)
     }
 
     /// `2, nums = [1,2,_]` -> (`2`, `nums`, `[1,2]`), the `_` being the
@@ -295,7 +342,11 @@ impl TestGenerator {
                     "result".to_string()
                 },
             };
-            lines.extend(Self::rust_assertion(&actual, expected_type));
+            lines.extend(Self::rust_assertion(
+                &actual,
+                expected_type,
+                self.any_order,
+            ));
 
             if let Some((_, j, array)) = &custom_judge {
                 let element_type = parameter_types[*j]

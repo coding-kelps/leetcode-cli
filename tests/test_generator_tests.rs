@@ -383,3 +383,44 @@ fn test_rust_float_vec_outputs_are_compared_with_tolerance() {
     assert!(result.contains("assert_eq!(result.len(), expected.len());"));
     assert!(result.contains("assert!((a - e).abs() < 1e-5"));
 }
+
+#[test]
+fn test_rust_any_order_outputs_are_sorted() {
+    let starter_code = "impl Solution {\n    pub fn three_sum(nums: Vec<i32>) \
+                        -> Vec<Vec<i32>> {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[-1,0,1,2,-1,-4]".to_string()],
+        outputs:       vec!["[[-1,-1,2],[-1,0,1]]".to_string()],
+    };
+
+    let result = TestGenerator::new(&starter_code, test_data)
+        .any_order(true)
+        .run(&ProgrammingLanguage::Rust)
+        .unwrap();
+
+    assert!(result.contains("let mut result = result;"));
+    assert!(result.contains("result.iter_mut().for_each(|v| v.sort());"));
+    assert!(result.contains("expected.sort();"));
+}
+
+#[test]
+fn test_rust_any_order_skips_floats_and_scalars() {
+    for (ret, output) in [("Vec<f64>", "[1.0]"), ("i32", "1")] {
+        let starter_code = format!(
+            "impl Solution {{\n    pub fn f(n: i32) -> {ret} {{\n        \
+             todo!()\n    }}\n}}"
+        );
+        let test_data = ProblemTestData {
+            example_count: 1,
+            inputs:        vec!["1".to_string()],
+            outputs:       vec![output.to_string()],
+        };
+        let result = TestGenerator::new(&starter_code, test_data)
+            .any_order(true)
+            .run(&ProgrammingLanguage::Rust)
+            .unwrap();
+        assert!(!result.contains(".sort()"));
+    }
+}

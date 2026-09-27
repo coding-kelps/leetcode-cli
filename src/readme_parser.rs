@@ -39,6 +39,13 @@ impl LeetcodeReadmeParser {
         })
     }
 
+    /// True when the statement lets the answer be returned in any order.
+    pub fn any_order(&self) -> bool {
+        Regex::new(r"(?i)in any order|order[^.]{0,60}does not matter")
+            .expect("valid regex")
+            .is_match(&self.raw)
+    }
+
     fn count_examples(&self) -> usize {
         self.raw.lines().filter(|line| line.starts_with("**Example")).count()
     }
