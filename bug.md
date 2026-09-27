@@ -27,3 +27,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] the readme parser only reads the first line of `Input:`, multi-line inputs (eg the `grid` of number of islands) become `[`
 - [x] zero width spaces from the leetcode html end up in the generated literals and break the file (greatest common divisor of strings)
 - [x] empty expected outputs (`vec![]`) do not type check, the `expected` binding has no type annotation (3sum, combination sum)
+- [x] interactive problems (guess number) have hidden inputs, the generated calls pass more arguments than the function takes

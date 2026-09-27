@@ -57,6 +57,11 @@ pub enum TestGeneratorError {
     Signature(#[from] CodeSignatureError),
     #[error("test generation is not supported for this language yet")]
     UnsupportedLanguage,
+    #[error(
+        "example inputs do not match the function parameters (interactive \
+         problem?)"
+    )]
+    InputMismatch,
 }
 
 impl From<TestGeneratorError> for std::io::Error {
@@ -194,6 +199,9 @@ impl TestGenerator {
             // Split input parameters and convert each one with its type
             let input_params =
                 self.split_input_parameters(&self.test_data.inputs[i]);
+            if input_params.len() != parameter_types.len() {
+                return Err(TestGeneratorError::InputMismatch);
+            }
             let mut arguments = Vec::new();
             for (j, param) in input_params.iter().enumerate() {
                 let rust_type =

@@ -303,3 +303,22 @@ fn test_rust_expected_is_annotated_with_return_type() {
 
     assert!(result.contains("let expected: Vec<Vec<i32>> = vec![];"));
 }
+
+#[test]
+fn test_rust_inputs_not_matching_parameters_is_an_error() {
+    // guess number higher or lower: `pick` is hidden behind the guess api
+    let starter_code = "impl Solution {\n    unsafe fn guessNumber(n: i32) -> \
+                        i32 {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["10,6".to_string()],
+        outputs:       vec!["6".to_string()],
+    };
+
+    let mut generator = TestGenerator::new(&starter_code, test_data);
+    assert_eq!(
+        generator.run(&ProgrammingLanguage::Rust).unwrap_err(),
+        TestGeneratorError::InputMismatch
+    );
+}
