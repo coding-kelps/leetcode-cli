@@ -305,7 +305,12 @@ impl TestGenerator {
             // Split input parameters and convert each one with its type
             let input_params =
                 self.split_input_parameters(&self.test_data.inputs[i]);
-            if input_params.len() != parameter_types.len() {
+            // `&self` methods call an api of the judge (278 isBadVersion)
+            let uses_self = signature.parameters.iter().any(|p| {
+                p.trim().trim_start_matches("&mut ").trim_start_matches('&')
+                    == "self"
+            });
+            if uses_self || input_params.len() != parameter_types.len() {
                 return Err(TestGeneratorError::InputMismatch);
             }
             let mut arguments = Vec::new();

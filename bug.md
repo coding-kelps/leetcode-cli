@@ -33,3 +33,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] "return the answer in any order" problems (two sum, 3sum, combination sum) fail when the order differs from the example, vectors are now sorted (inner vectors too) before being compared
 - [x] starters with both a list and a tree definition (109) keep the second `Definition for` title uncommented, the file does not compile
 - [x] a misspelled `Explantion:` line (1017) is read as part of the output, the output now stops at any `Word:` line
+- [x] `&self` methods calling a judge api (278 isBadVersion) get tests passing the inputs as the method arguments, they are now skipped like interactive problems

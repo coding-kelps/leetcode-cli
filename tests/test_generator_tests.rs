@@ -424,3 +424,18 @@ fn test_rust_any_order_skips_floats_and_scalars() {
         assert!(!result.contains(".sort()"));
     }
 }
+
+#[test]
+fn test_rust_self_methods_are_not_generated() {
+    let starter_code = "impl Solution {\n    pub fn first_bad_version(&self, \
+                        n: i32) -> i32 {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["5,4".to_string()],
+        outputs:       vec!["4".to_string()],
+    };
+    let result = TestGenerator::new(&starter_code, test_data)
+        .run(&ProgrammingLanguage::Rust);
+    assert_eq!(result, Err(TestGeneratorError::InputMismatch));
+}
