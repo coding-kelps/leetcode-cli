@@ -346,3 +346,11 @@ fn test_any_order_is_detected() {
     .any_order());
     assert!(!LeetcodeReadmeParser::new("Return the sorted array.").any_order());
 }
+
+#[test]
+fn test_output_stops_at_misspelled_explanation() {
+    let readme = "**Example 1:**\n\n```\nInput: n = 4\nOutput: \
+                  \"100\"\nExplantion: (-2)2 = 4\n```\n";
+    let data = LeetcodeReadmeParser::new(readme).parse().unwrap();
+    assert_eq!(data.outputs, vec!["\"100\""]);
+}

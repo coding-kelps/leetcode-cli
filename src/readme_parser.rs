@@ -58,9 +58,10 @@ impl LeetcodeReadmeParser {
     }
 
     fn extract_outputs(&self) -> Vec<String> {
-        // an output ends with a blank line, the explanation or the code block
+        // an output ends with a blank line, a `Explanation:` like line (typos
+        // included) or the code block
         self.extract_from_pattern(
-            r"(?ms)^\s*\*?\*?Output:\*?\*?[ \t]*(.*?)\s*(?:\n\s*\n|^\s*\*?\*?Explanation|^\s*```|\z)",
+            r"(?ms)^\s*\*?\*?Output:\*?\*?[ \t]*(.*?)\s*(?:\n\s*\n|^\s*\*?\*?[A-Z][A-Za-z ]{0,30}:|^\s*```|\z)",
         )
     }
 

@@ -32,3 +32,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] float outputs are compared with `assert_eq!`, a correct `my_pow` fails on `9.261000000000001 != 9.261`, leetcode accepts a 1e-5 difference
 - [x] "return the answer in any order" problems (two sum, 3sum, combination sum) fail when the order differs from the example, vectors are now sorted (inner vectors too) before being compared
 - [x] starters with both a list and a tree definition (109) keep the second `Definition for` title uncommented, the file does not compile
+- [x] a misspelled `Explantion:` line (1017) is read as part of the output, the output now stops at any `Word:` line
