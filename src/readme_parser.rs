@@ -51,6 +51,62 @@ impl LeetcodeReadmeParser {
         self.extract_from_pattern(r"(?m)^\s*\*?\*?Output:\*?\*?\s*(.*)$")
     }
 
+    /// `nums = [1,2], s = "a,b=c"` -> `[1,2],"a,b=c"`: removes the
+    /// parameter names, splitting on top level commas only so commas and `=`
+    /// inside strings or arrays are kept. Values without names are returned
+    /// as is.
+    fn strip_parameter_names(input: &str) -> String {
+        let named = Regex::new(r"^\s*[A-Za-z_]\w*\s*=").unwrap();
+        if !named.is_match(input) {
+            return input.to_string();
+        }
+
+        let mut values: Vec<String> = Vec::new();
+        for part in Self::split_top_level(input) {
+            match part.split_once('=') {
+                Some((_, value)) if named.is_match(&part) => {
+                    values.push(value.trim().to_string())
+                },
+                // not a `name = value` pair, continuation of the previous
+                // value
+                _ => match values.last_mut() {
+                    Some(last) => {
+                        last.push(',');
+                        last.push_str(part.trim());
+                    },
+                    None => values.push(part.trim().to_string()),
+                },
+            }
+        }
+        values.join(",")
+    }
+
+    fn split_top_level(input: &str) -> Vec<String> {
+        let mut parts = Vec::new();
+        let mut current = String::new();
+        let mut depth = 0;
+        let mut in_quotes = false;
+        let mut escaped = false;
+
+        for ch in input.chars() {
+            match ch {
+                _ if escaped => escaped = false,
+                '\\' if in_quotes => escaped = true,
+                '"' => in_quotes = !in_quotes,
+                '[' | '{' | '(' if !in_quotes => depth += 1,
+                ']' | '}' | ')' if !in_quotes => depth -= 1,
+                ',' if !in_quotes && depth == 0 => {
+                    parts.push(std::mem::take(&mut current));
+                    continue;
+                },
+                _ => {},
+            }
+            current.push(ch);
+        }
+        parts.push(current);
+        parts
+    }
+
     fn extract_from_pattern(&self, pattern: &str) -> Vec<String> {
         let re = Regex::new(pattern).unwrap();
 
@@ -63,24 +119,7 @@ impl LeetcodeReadmeParser {
                     .trim()
                     .to_string();
 
-                let trimmed = if input.contains('=') {
-                    input
-                        .split(',')
-                        .filter_map(|part| {
-                            if let Some(eq_pos) = part.find('=') {
-                                Some(part[eq_pos + 1..].trim())
-                            } else {
-                                // Handle continuation of previous array/value
-                                let trimmed_part = part.trim();
-                                (!trimmed_part.is_empty())
-                                    .then_some(trimmed_part)
-                            }
-                        })
-                        .collect::<Vec<_>>()
-                        .join(",")
-                } else {
-                    input.to_string()
-                };
+                let trimmed = Self::strip_parameter_names(&input);
 
                 result.push(trimmed);
             }

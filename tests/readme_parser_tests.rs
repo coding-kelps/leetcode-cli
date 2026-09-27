@@ -284,3 +284,22 @@ fn test_1004_outputs_1_parse_readme() {
     let expected = "10";
     assert_eq!(output, expected, "second output mismatch");
 }
+
+#[test]
+fn test_strings_with_commas_and_equals_are_kept() {
+    let readme = "**Example 1:**\n\n```\nInput: strs = \
+                  [\"eat\",\"t,a=n\",\"\"], sep = \",\"\nOutput: \
+                  [[\"eat\"],[\"t,a=n\"],[\"\"]]\n```\n";
+    let data = LeetcodeReadmeParser::new(readme).parse().unwrap();
+    assert_eq!(data.inputs, vec!["[\"eat\",\"t,a=n\",\"\"],\",\""]);
+    assert_eq!(data.outputs, vec!["[[\"eat\"],[\"t,a=n\"],[\"\"]]"]);
+}
+
+#[test]
+fn test_output_string_with_equals_is_kept() {
+    let readme = "**Example 1:**\n\n```\nInput: s = \"a\", t = \"b\"\nOutput: \
+                  \"a=b, c\"\n```\n";
+    let data = LeetcodeReadmeParser::new(readme).parse().unwrap();
+    assert_eq!(data.inputs, vec!["\"a\",\"b\""]);
+    assert_eq!(data.outputs, vec!["\"a=b, c\""]);
+}

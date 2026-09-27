@@ -22,5 +22,5 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] `parse_rust_signature` takes the first `fn ` of the file, which is the commented `fn new` of the `ListNode` / `TreeNode` definition, so tests call `Solution::new(..)`; design problems (no `impl Solution`, eg `MinStack`) also get `Solution::..` calls
 - [x] literals ignore the parameter / return types: `"1"` becomes `"1".to_string()` for a `char` (`Vec<Vec<char>>`, `&mut Vec<char>`), and an output `2` for a `f64` return stays an integer
 - [x] in-place problems (`&mut` parameter, no return value, eg reverse_string) pass the value instead of `&mut` and compare `()` with the expected output instead of the mutated parameter
-- [ ] the readme parser splits the input on every `,` before looking for `=`, so a string containing `,` or `=` is mangled (`"t,a=n"` becomes `"t,n"`)
+- [x] the readme parser splits the input on every `,` before looking for `=`, so a string containing `,` or `=` is mangled (`"t,a=n"` becomes `"t,n"`)
 - [ ] `ListNode` / `TreeNode` problems: the type definitions stay commented so the file does not compile, and list / tree inputs are generated as `vec![..]`
