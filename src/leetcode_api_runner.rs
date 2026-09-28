@@ -6,7 +6,7 @@ use std::{
     },
 };
 
-use colored::*;
+use colored::Colorize;
 use leetcoderustapi::{
     problem_actions::Problem,
     ProgrammingLanguage,
@@ -18,7 +18,18 @@ use crate::{
     config::RuntimeConfigSetup,
     local_config::LocalConfig,
     result_formatter::format_test_result,
-    utils::*,
+    utils::{
+        build_problem_file,
+        difficulty_color,
+        ensure_directory_exists,
+        get_file_name,
+        get_language_from_extension,
+        language_to_string,
+        preprocess_code,
+        run_local_check,
+        write_readme,
+        write_to_file,
+    },
 };
 
 pub struct LeetcodeApiRunner {
@@ -27,6 +38,12 @@ pub struct LeetcodeApiRunner {
 }
 
 impl LeetcodeApiRunner {
+    /// Builds the API runner from the runtime config (token, paths).
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` (kind `NotConnected`) when the leetcode API client
+    /// cannot be created with the configured token.
     pub async fn new(rcs: &RuntimeConfigSetup) -> Result<Self, io::Error> {
         Ok(LeetcodeApiRunner {
             rcs: rcs.clone(),
@@ -47,6 +64,12 @@ impl LeetcodeApiRunner {
         })
     }
 
+    /// Fetches title, difficulty and description of a problem by ID.
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the API call or description fetch fails (network,
+    /// unknown problem ID).
     pub async fn get_problem_info(&self, id: u32) -> io::Result<String> {
         let pb = self.api.set_problem_by_id(id).await?;
 
@@ -58,12 +81,26 @@ impl LeetcodeApiRunner {
     }
 
     /// Fetches the problem name by its ID.
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the API call or description fetch fails (network,
+    /// unknown problem ID).
     pub async fn get_problem_name(&self, id: u32) -> io::Result<String> {
         let pb = self.api.set_problem_by_id(id).await?;
         Ok(pb.description()?.name)
     }
 
     /// Fetches the available languages for a given problem ID.
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the API call fails (network, unknown problem ID).
+    ///
+    /// # Panics
+    ///
+    /// Panics when the problem has no code snippets at all — every
+    /// published leetcode problem has some.
     pub async fn get_available_languages(
         &self, id: &u32,
     ) -> io::Result<Vec<String>> {
@@ -77,17 +114,27 @@ impl LeetcodeApiRunner {
             .collect::<Vec<_>>())
     }
 
+    /// Creates the problem directory, writes the readme, starter code and
+    /// local config, then initializes the language project skeleton.
+    ///
+    /// Returns the success message, the created directory and an optional
+    /// warning (e.g. a failing language toolchain init).
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the API call fails, the directory tree cannot be
+    /// created, or files cannot be written.
     pub async fn start_problem(
         &self, id: u32, lang: ProgrammingLanguage,
     ) -> io::Result<(String, PathBuf, Option<String>)> {
         let pb = self.api.set_problem_by_id(id).await?;
         let pb_desc = pb.description()?;
-        let pb_name = pb_desc.name.replace(" ", "_");
+        let pb_name = pb_desc.name.replace(' ', "_");
         let md_desc = html2md::parse_html(&pb_desc.content);
         let (pb_dir, src_dir, mut warning) =
             self.prepare_problem_dir(id, &pb_name, &lang)?;
 
-        let starter_code = self.get_starter_code(&lang, &pb)?;
+        let starter_code = Self::get_starter_code(&lang, &pb)?;
         let (file_content, test_warning) =
             build_problem_file(&starter_code, &md_desc, &lang);
         if let Some(test_warning) = test_warning {
@@ -116,6 +163,11 @@ impl LeetcodeApiRunner {
     }
 
     /// Prepares the problem directory.
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the leetcode dir cannot be resolved or the
+    /// problem/src directories cannot be created.
     fn prepare_problem_dir(
         &self, id: u32, pb_name: &str, language: &ProgrammingLanguage,
     ) -> io::Result<(PathBuf, PathBuf, Option<String>)> {
@@ -127,13 +179,18 @@ impl LeetcodeApiRunner {
         ensure_directory_exists(&src_dir)?;
 
         let warning =
-            self.initialize_language_project(&problem_dir, pb_name, language)?;
+            Self::initialize_language_project(&problem_dir, pb_name, language);
         Ok((problem_dir, src_dir, warning))
     }
 
     /// Generates starter code for the specified programming language.
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` (kind `NotFound`) when the problem has no snippets or no
+    /// snippet for the requested language.
     fn get_starter_code(
-        &self, language: &ProgrammingLanguage, pb: &Problem,
+        language: &ProgrammingLanguage, pb: &Problem,
     ) -> io::Result<String> {
         let str_language = language_to_string(language);
 
@@ -157,6 +214,17 @@ impl LeetcodeApiRunner {
         Ok(starter_code)
     }
 
+    /// Reads the solution file, preprocesses it and submits it for local
+    /// test execution, returning the formatted result.
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the API call, local check or test submission fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the solution file cannot be read — it must exist since
+    /// the path comes from an opened problem directory.
     pub async fn test_response(
         &self, id: u32, path_to_file: &String,
     ) -> io::Result<String> {
@@ -172,6 +240,16 @@ impl LeetcodeApiRunner {
         Ok(format_test_result(id, &name, &test_res))
     }
 
+    /// Reads the solution file, preprocesses it and submits it to leetcode.
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the API call or the submission fails.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the solution file cannot be read — it must exist since
+    /// the path comes from an opened problem directory.
     pub async fn submit_response(
         &self, id: u32, path_to_file: &String,
     ) -> io::Result<()> {
@@ -186,11 +264,12 @@ impl LeetcodeApiRunner {
         Ok(())
     }
 
-    /// Initializes language-specific project structure.
+    /// Initializes language-specific project structure. Toolchain failures
+    /// (spawn error, non-zero exit) come back as a warning string.
+    #[must_use]
     fn initialize_language_project(
-        &self, problem_dir: &Path, pb_name: &str,
-        language: &ProgrammingLanguage,
-    ) -> io::Result<Option<String>> {
+        problem_dir: &Path, pb_name: &str, language: &ProgrammingLanguage,
+    ) -> Option<String> {
         use std::process::Command;
 
         let result = match language {
@@ -205,21 +284,21 @@ impl LeetcodeApiRunner {
                 .output(),
             ProgrammingLanguage::Go => {
                 let module_name =
-                    format!("leetcode-{}", pb_name.replace("_", "-"));
+                    format!("leetcode-{}", pb_name.replace('_', "-"));
                 Command::new("go")
                     .args(["mod", "init", &module_name])
                     .current_dir(problem_dir)
                     .output()
             },
-            _ => return Ok(None),
+            _ => return None,
         };
 
         match result {
             Ok(output) if !output.status.success() => {
-                Ok(Some(String::from_utf8(output.stderr).unwrap()))
+                Some(String::from_utf8(output.stderr).unwrap_or_default())
             },
-            Err(e) => Ok(Some(e.to_string())),
-            _ => Ok(None),
+            Err(e) => Some(e.to_string()),
+            _ => None,
         }
     }
 }

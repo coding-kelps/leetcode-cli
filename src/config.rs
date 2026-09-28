@@ -33,6 +33,13 @@ impl Default for RuntimeConfigSetup {
 }
 
 impl RuntimeConfigSetup {
+    /// Sets up a fresh runtime config rooted at the user home directory.
+    ///
+    /// # Panics
+    ///
+    /// Panics when no home directory can be determined — the whole config
+    /// layout depends on it.
+    #[must_use]
     pub fn new() -> Self {
         let home_dir = dirs::home_dir().expect("no home directory");
         let config_dir = home_dir.join(".config/leetcode-cli");
@@ -50,7 +57,13 @@ impl RuntimeConfigSetup {
             },
         }
     }
-    /// create a config file in ~/.config/leetcode-cli/config.toml
+    /// Creates a config file in ~/.config/leetcode-cli/config.toml with
+    /// default values.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the config directory cannot be created or the file
+    /// cannot be written — setup cannot proceed without them.
     fn create_config_file(&self) {
         std::fs::create_dir_all(&self.config_dir)
             .expect("Unable to create directory");
@@ -62,8 +75,13 @@ impl RuntimeConfigSetup {
         .expect("Unable to create file");
     }
 
-    /// Saves the leetcode token into the config file, in the leetcode_token
+    /// Saves the leetcode token into the config file, in the `leetcode_token`
     /// entry, preserving the rest of the file (other keys, comments) as is.
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the file cannot be created/read/written or contains
+    /// invalid toml (kind `InvalidData`).
     pub fn write_token_to_file(
         config_file: &PathBuf, token: &str,
     ) -> io::Result<()> {
@@ -91,6 +109,16 @@ impl RuntimeConfigSetup {
     /// check for a config file in ~/.config/leetcode-cli/config.toml
     /// read it or create it with default values if it doesn't exist
     /// load the config in Config struct and check if the token is valid
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the config file cannot be read or the directory
+    /// cannot be created.
+    ///
+    /// # Panics
+    ///
+    /// Panics when the config file exists but cannot be read or contains
+    /// invalid toml — requires manual fixing.
     pub fn status(&mut self) -> Result<(), io::Error> {
         if self.config_file.is_file() {
             let config_file = std::fs::read_to_string(&self.config_file)
@@ -115,8 +143,13 @@ impl RuntimeConfigSetup {
         Ok(())
     }
 
-    /// Resolve the configured LeetCode directory, expand ~, canonicalize, and
+    /// Resolve the configured `LeetCode` directory, expand ~, canonicalize, and
     /// create if missing.
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` (kind `NotFound`) when no `leetcode_dir_path` is set in
+    /// the config, or when the directory cannot be created/canonicalized.
     pub fn resolve_leetcode_dir(&self) -> io::Result<PathBuf> {
         let raw = if let Some(ref custom) = self.config.leetcode_dir_path {
             custom.to_string_lossy()

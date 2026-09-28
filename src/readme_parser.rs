@@ -24,10 +24,17 @@ impl From<LeetcodeReadmeParserError> for std::io::Error {
 }
 
 impl LeetcodeReadmeParser {
+    #[must_use]
     pub fn new(readme: &str) -> Self {
         LeetcodeReadmeParser { raw: readme.to_string() }
     }
 
+    /// Extracts example inputs/outputs and their count from the readme.
+    ///
+    /// # Errors
+    ///
+    /// `LeetcodeReadmeParserError::EmptyReadme` when the readme is empty —
+    /// the problem has no testable data.
     pub fn parse(&self) -> Result<ProblemTestData, LeetcodeReadmeParserError> {
         if self.raw.is_empty() {
             return Err(LeetcodeReadmeParserError::EmptyReadme);
@@ -40,6 +47,12 @@ impl LeetcodeReadmeParser {
     }
 
     /// True when the statement lets the answer be returned in any order.
+    ///
+    /// # Panics
+    ///
+    /// Panics only if the hardcoded regex is invalid — compile-time
+    /// constant, cannot happen in practice.
+    #[must_use]
     pub fn any_order(&self) -> bool {
         Regex::new(r"(?i)in any order|order[^.]{0,60}does not matter")
             .expect("valid regex")
@@ -47,6 +60,12 @@ impl LeetcodeReadmeParser {
     }
 
     /// True when any of several valid answers is accepted.
+    ///
+    /// # Panics
+    ///
+    /// Panics only if the hardcoded regex is invalid — compile-time
+    /// constant, cannot happen in practice.
+    #[must_use]
     pub fn many_answers(&self) -> bool {
         Regex::new(
             r"(?i)return any of them|any valid answer|multiple (valid )?(answers|solutions)|return any (one|such)",
@@ -80,7 +99,7 @@ impl LeetcodeReadmeParser {
     /// inside strings or arrays are kept. Values without names are returned
     /// as is.
     fn strip_parameter_names(input: &str) -> String {
-        let named = Regex::new(r"^\s*[A-Za-z_]\w*\s*=").unwrap();
+        let named = Regex::new(r"^\s*[A-Za-z_]\w*\s*=").expect("valid regex");
         if !named.is_match(input) {
             return input.to_string();
         }
@@ -89,7 +108,7 @@ impl LeetcodeReadmeParser {
         for part in Self::split_top_level(input) {
             match part.split_once('=') {
                 Some((_, value)) if named.is_match(&part) => {
-                    values.push(value.trim().to_string())
+                    values.push(value.trim().to_string());
                 },
                 // not a `name = value` pair, continuation of the previous
                 // value
@@ -132,7 +151,7 @@ impl LeetcodeReadmeParser {
     }
 
     fn extract_from_pattern(&self, pattern: &str) -> Vec<String> {
-        let re = Regex::new(pattern).unwrap();
+        let re = Regex::new(pattern).expect("valid regex");
 
         let mut result = Vec::new();
         for capture in re.captures_iter(&self.raw) {

@@ -60,6 +60,59 @@ async fn build_api_runner(
     }
 }
 
+/// Picks the language for `start`: the CLI flag, else the configured
+/// default, interactively prompting until a valid one is entered.
+/// `None` when the default language in the config is unparseable and the
+/// user aborts the prompt (ctrl-c).
+/// Runs the `start` command: resolves the language (CLI flag, config
+/// default, else interactive prompt) and creates the problem directory.
+async fn start_command(
+    api_runner: &LeetcodeApiRunner, rcs: &RuntimeConfigSetup, id: u32,
+    language: Option<&String>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let default_lang = rcs
+        .config
+        .default_language
+        .clone()
+        .unwrap_or_else(|| "not found".to_string());
+    let mut lang = match language {
+        Some(lang) => parse_programming_language(lang),
+        None => parse_programming_language(&default_lang),
+    };
+    if lang.is_err() {
+        let spin = spin_the_spinner("Gathering problem info...");
+        let problem_name = api_runner.get_problem_name(id).await?;
+        let available_languages =
+            api_runner.get_available_languages(&id).await?;
+        stop_and_clear_spinner(spin);
+        while lang.is_err() {
+            lang =
+                prompt_for_language(&id, &problem_name, &available_languages)
+                    .and_then(|lang| parse_programming_language(&lang));
+        }
+    }
+    let lang = lang.expect("loop above exits only when `lang` is `Ok`");
+
+    let spin = spin_the_spinner("Starting problem setup...");
+    let start_problem = api_runner.start_problem(id, lang).await;
+    stop_and_clear_spinner(spin);
+    match start_problem {
+        Ok((success_message, pb_dir, warning)) => {
+            if let Some(warning) = warning {
+                eprintln!("{warning}");
+            }
+            println!("{success_message}");
+            println!("\nHappy coding :)");
+            println!(
+                "\n(ps: to use local config feature, you should \ncd {}\n;)",
+                pb_dir.display()
+            );
+        },
+        Err(e) => eprintln!("Error starting problem: {e}"),
+    }
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
@@ -95,47 +148,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         },
         Commands::Start { id, language } => {
-            let default_lang = rcs
-                .config
-                .default_language
-                .clone()
-                .unwrap_or_else(|| "not found".to_string());
-            let mut lang = match language {
-                Some(lang) => parse_programming_language(lang),
-                None => parse_programming_language(&default_lang),
-            };
-            let spin = spin_the_spinner("Gathering problem info...");
-            let problem_name = api_runner.get_problem_name(*id).await?;
-            let available_languages =
-                api_runner.get_available_languages(id).await?;
-            stop_and_clear_spinner(spin);
-            while lang.is_err() {
-                lang = prompt_for_language(
-                    id,
-                    &problem_name,
-                    &available_languages,
-                )
-                .and_then(|lang| parse_programming_language(&lang));
-            }
-            let lang = lang.unwrap();
-            let spin = spin_the_spinner("Starting problem setup...");
-            let start_problem = api_runner.start_problem(*id, lang).await;
-            stop_and_clear_spinner(spin);
-            match start_problem {
-                Ok((success_message, pb_dir, warning)) => {
-                    if let Some(warning) = warning {
-                        eprintln!("{warning}");
-                    }
-                    println!("{success_message}");
-                    println!("\nHappy coding :)");
-                    println!(
-                        "\n(ps: to use local config feature, you should \ncd \
-                         {}\n;)",
-                        pb_dir.display()
-                    );
-                },
-                Err(e) => eprintln!("Error starting problem: {e}"),
-            }
+            start_command(&api_runner, &rcs, *id, language.as_ref()).await?;
         },
         Commands::Test { id, path_to_file } => {
             let (problem_id, file_path) =
@@ -159,7 +172,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 api_runner.submit_response(problem_id, &file_path).await;
             stop_and_clear_spinner(spin);
             match submit_result {
-                Ok(_) => println!("Submit result"),
+                Ok(()) => println!("Submit result"),
                 Err(e) => eprintln!("Error submitting solution: {e}"),
             }
         },

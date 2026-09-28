@@ -231,7 +231,12 @@ async fn poll_until_signed_in(port: u16) -> io::Result<String> {
 /// One time login flow:
 /// spawns a browser on a dedicated profile, waits for the user to log into
 /// leetcode, grabs the session cookies through the devtools protocol,
-/// validates them and saves them into the leetcode_token config entry.
+/// validates them and saves them into the `leetcode_token` config entry.
+///
+/// # Errors
+///
+/// `io::Error` when no supported browser is found, the browser cannot be
+/// launched, the login flow times out, or the token cannot be written.
 pub async fn run_login(rcs: &RuntimeConfigSetup) -> io::Result<String> {
     let browser = find_browser()?;
     let profile_dir = rcs.config_dir.join("browser-profile");

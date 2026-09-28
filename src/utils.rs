@@ -16,6 +16,15 @@ use crate::{
 };
 
 /// Ensures that a directory exists, creating it if necessary.
+///
+/// # Errors
+///
+/// `io::Error` propagated from directory creation.
+///
+/// # Panics
+///
+/// Panics when the directory cannot be created — the caller cannot
+/// proceed without it.
 pub fn ensure_directory_exists(path: &Path) -> io::Result<PathBuf> {
     let path = Path::new(&path);
     if !path.exists() {
@@ -25,6 +34,10 @@ pub fn ensure_directory_exists(path: &Path) -> io::Result<PathBuf> {
 }
 
 /// Writes content to a file in the specified directory.
+///
+/// # Errors
+///
+/// `io::Error` when the file cannot be written.
 pub fn write_to_file(
     dir: &Path, file_name: &str, content: &str,
 ) -> io::Result<()> {
@@ -33,6 +46,10 @@ pub fn write_to_file(
 }
 
 /// Writes the README file for the given problem.
+///
+/// # Errors
+///
+/// `io::Error` when the readme file cannot be written.
 pub(crate) fn write_readme(
     problem_dir: &Path, id: u32, pb_name: &str, md_desc: &str,
 ) -> io::Result<()> {
@@ -40,6 +57,12 @@ pub(crate) fn write_readme(
     write_to_file(problem_dir, &format!("{pb_name}.md"), &content)
 }
 
+/// Maps a user-facing language name (case-insensitive) to its enum value.
+///
+/// # Errors
+///
+/// `io::Error` (kind `InvalidInput`) when the language name is not
+/// recognized.
 pub fn parse_programming_language(
     lang: &str,
 ) -> Result<leetcoderustapi::ProgrammingLanguage, std::io::Error> {
@@ -79,11 +102,13 @@ pub fn parse_programming_language(
     }
 }
 
+#[must_use]
 pub fn get_file_name(lang: &leetcoderustapi::ProgrammingLanguage) -> String {
     format!("main.{}", get_extension_from_language(lang))
 }
 
 /// Converts a programming language enum to its string representation.
+#[must_use]
 pub fn language_to_string(
     lang: &leetcoderustapi::ProgrammingLanguage,
 ) -> String {
@@ -120,6 +145,13 @@ pub fn language_to_string(
     }
 }
 
+/// Maps a file extension to the leetcode language slug for that file.
+///
+/// # Panics
+///
+/// Panics on an extension with no leetcode language — solutions always
+/// come from a problem directory with a known extension.
+#[must_use]
 pub fn get_language_from_extension(
     file_name: &str,
 ) -> leetcoderustapi::ProgrammingLanguage {
@@ -127,8 +159,9 @@ pub fn get_language_from_extension(
     match extension.as_str() {
         "cpp" => leetcoderustapi::ProgrammingLanguage::CPP,
         "java" => leetcoderustapi::ProgrammingLanguage::Java,
-        "py" => leetcoderustapi::ProgrammingLanguage::Python3,
-        "python3" | "py3" => leetcoderustapi::ProgrammingLanguage::Python3,
+        "py" | "python3" | "py3" => {
+            leetcoderustapi::ProgrammingLanguage::Python3
+        },
         "c" => leetcoderustapi::ProgrammingLanguage::C,
         "cs" => leetcoderustapi::ProgrammingLanguage::CSharp,
         "js" => leetcoderustapi::ProgrammingLanguage::JavaScript,
@@ -150,14 +183,17 @@ pub fn get_language_from_extension(
     }
 }
 
+#[must_use]
 pub fn get_extension_from_language(
     lang: &leetcoderustapi::ProgrammingLanguage,
 ) -> String {
     match lang {
         leetcoderustapi::ProgrammingLanguage::CPP => "cpp".to_string(),
         leetcoderustapi::ProgrammingLanguage::Java => "java".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Python => "py".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Python3 => "py".to_string(),
+        leetcoderustapi::ProgrammingLanguage::Python
+        | leetcoderustapi::ProgrammingLanguage::Python3
+        // leetcode code snippets use "pythondata" as slug for pandas
+        | leetcoderustapi::ProgrammingLanguage::Pandas => "py".to_string(),
         leetcoderustapi::ProgrammingLanguage::C => "c".to_string(),
         leetcoderustapi::ProgrammingLanguage::CSharp => "cs".to_string(),
         leetcoderustapi::ProgrammingLanguage::JavaScript => "js".to_string(),
@@ -174,11 +210,11 @@ pub fn get_extension_from_language(
         leetcoderustapi::ProgrammingLanguage::Erlang => "erl".to_string(),
         leetcoderustapi::ProgrammingLanguage::Elixir => "ex".to_string(),
         leetcoderustapi::ProgrammingLanguage::Dart => "dart".to_string(),
-        leetcoderustapi::ProgrammingLanguage::Pandas => "py".to_string(),
         leetcoderustapi::ProgrammingLanguage::React => "jsx".to_string(),
     }
 }
 
+#[must_use]
 pub fn spin_the_spinner(message: &str) -> spinners::Spinner {
     spinners::Spinner::new(spinners::Spinners::Dots12, message.to_string())
 }
@@ -194,6 +230,12 @@ pub fn stop_and_clear_spinner(mut spinner: spinners::Spinner) {
     io::stdout().flush().unwrap_or(());
 }
 
+/// Interactively asks for a language, printing the available ones for the
+/// problem.
+///
+/// # Errors
+///
+/// `io::Error` when stdin/stdout cannot be accessed.
 pub fn prompt_for_language(
     id: &u32, problem_name: &str, available_languages: &[String],
 ) -> Result<String, io::Error> {
@@ -202,11 +244,7 @@ pub fn prompt_for_language(
          list of available languages for the problem {} - {}\n{}",
         id,
         problem_name,
-        available_languages
-            .iter()
-            .map(|l| l.to_string())
-            .collect::<Vec<_>>()
-            .join(", ")
+        available_languages.to_vec().join(", ")
     );
     let mut input = String::new();
     io::stdin().read_line(&mut input)?;
@@ -218,6 +256,7 @@ pub fn prompt_for_language(
     }
 }
 
+#[must_use]
 pub fn prefix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
     let prefix = match lang {
         // design problems can define their own `struct Solution` (384)
@@ -226,15 +265,16 @@ pub fn prefix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
         {
             "pub struct Solution;\n\n".to_string()
         },
-        _ => "".to_string(),
+        _ => String::new(),
     };
     format!("{prefix}\n{file_content}")
 }
 
+#[must_use]
 pub fn postfix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
     let postfix = match lang {
         ProgrammingLanguage::Rust => "\n\nfn main() {}\n".to_string(),
-        _ => "".to_string(),
+        _ => String::new(),
     };
     format!("{file_content}\n{postfix}")
 }
@@ -243,6 +283,12 @@ pub fn postfix_code(file_content: &str, lang: &ProgrammingLanguage) -> String {
 /// code comes with `{ }` bodies, which do not type check for functions
 /// returning a value. `todo!()` keeps the file compiling and makes the
 /// generated tests fail until the function is implemented.
+///
+/// # Panics
+///
+/// Panics only if the hardcoded regex is invalid — compile-time constant,
+/// cannot happen in practice.
+#[must_use]
 pub fn inject_default_return_value(
     starter_code: &str, lang: &ProgrammingLanguage,
 ) -> String {
@@ -270,6 +316,7 @@ const LOCAL_DEFINITIONS_END: &str = "// leetcode-cli: end of local definitions";
 /// commented out, the file does not compile locally without them. Uncomments
 /// them between markers, `preprocess_code` removes them again before the code
 /// is sent to leetcode, which defines them itself.
+#[must_use]
 pub fn uncomment_local_definitions(
     starter_code: &str, lang: &ProgrammingLanguage,
 ) -> String {
@@ -292,7 +339,7 @@ pub fn uncomment_local_definitions(
         .map_or(lines.len(), |offset| start + offset);
 
     let mut result: Vec<String> =
-        lines[..start].iter().map(|line| line.to_string()).collect();
+        lines[..start].iter().map(std::string::ToString::to_string).collect();
     result.push(LOCAL_DEFINITIONS_START.to_string());
     for line in &lines[start..end] {
         let code = line.trim_start_matches("//");
@@ -310,7 +357,7 @@ pub fn uncomment_local_definitions(
         result.push("use std::cell::RefCell;".to_string());
     }
     result.push(LOCAL_DEFINITIONS_END.to_string());
-    result.extend(lines[end..].iter().map(|line| line.to_string()));
+    result.extend(lines[end..].iter().map(std::string::ToString::to_string));
     result.join("\n")
 }
 
@@ -365,6 +412,7 @@ fn remove_local_definitions(content: &str) -> String {
         .join("\n")
 }
 
+#[must_use]
 pub fn difficulty_color(difficulty: &str) -> colored::ColoredString {
     match difficulty {
         "Easy" => "Easy".green(),
@@ -374,8 +422,9 @@ pub fn difficulty_color(difficulty: &str) -> colored::ColoredString {
     }
 }
 
-/// Preprocesses file content before sending to LeetCode by removing local
+/// Preprocesses file content before sending to `LeetCode` by removing local
 /// compilation helpers
+#[must_use]
 pub fn preprocess_code(
     content: &str, language: &ProgrammingLanguage,
 ) -> String {
@@ -387,7 +436,7 @@ pub fn preprocess_code(
 }
 
 /// Removes pub struct Solution; from the top of the file, the local
-/// ListNode / TreeNode definitions and the main function
+/// `ListNode` / `TreeNode` definitions and the main function
 fn preprocess_rust_content(content: &str) -> String {
     let n = delete_line_content(content, "pub struct Solution;");
     let n = remove_local_definitions(&n);
@@ -425,8 +474,13 @@ fn find_manifest_dir(start_dir: &Path) -> Option<PathBuf> {
     None
 }
 
-/// Runs local compilation check before sending to LeetCode, errors out if
+/// Runs local compilation check before sending to `LeetCode`, errors out if
 /// the code does not compile
+///
+/// # Errors
+///
+/// `io::Error` when the compiler toolchain cannot be run or the code does
+/// not compile; the compile output is carried in the error message.
 pub async fn run_local_check(
     path_to_file: &str, language: &ProgrammingLanguage,
 ) -> io::Result<String> {
@@ -474,6 +528,6 @@ pub async fn run_local_check(
 
             Ok("✅ Local compilation passed!".to_string())
         },
-        _ => Ok(format!("⚠️ Local check not implemented for {language:?}",)),
+        _ => Ok(format!("⚠️ Local check not implemented for {language:?}")),
     }
 }

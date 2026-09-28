@@ -46,9 +46,9 @@ fn test_python_function_parsing() {
 
 #[test]
 fn test_python_class_parsing() {
-    let starter_code = r#"class Solution:
+    let starter_code = r"class Solution:
     def two_sum(self, nums, target):
-        pass"#
+        pass"
         .to_string();
     let test_data = ProblemTestData {
         example_count: 1,
@@ -132,9 +132,9 @@ fn test_python_test_generation_function() {
 
 #[test]
 fn test_python_test_generation_class() {
-    let starter_code = r#"class Solution:
+    let starter_code = r"class Solution:
     def two_sum(self, nums, target):
-        pass"#
+        pass"
         .to_string();
     let test_data = ProblemTestData {
         example_count: 1,
@@ -153,9 +153,9 @@ fn test_python_test_generation_class() {
 
 #[test]
 fn test_python3_test_generation_class() {
-    let starter_code = r#"class Solution:
+    let starter_code = r"class Solution:
     def twoSum(self, nums: List[int], target: int) -> List[int]:
-        "#
+        "
     .to_string();
     let test_data = ProblemTestData {
         example_count: 1,

@@ -1,3 +1,4 @@
+use core::fmt::Write as _;
 use std::{
     fs,
     path::Path,
@@ -50,7 +51,7 @@ fn test_rust_fixtures_generate_compiling_tests() {
         }
         assert!(content.contains("fn test_case_0()"), "{id}: no test");
         fs::write(out.join(format!("p{id}.rs")), content).unwrap();
-        modules.push_str(&format!("mod p{id};\n"));
+        let _ = writeln!(modules, "mod p{id};");
     }
     fs::write(out.join("main.rs"), format!("{modules}\nfn main() {{}}\n"))
         .unwrap();

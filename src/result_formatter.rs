@@ -1,12 +1,15 @@
+use core::fmt::Write as _;
+
 use colored::Colorize;
 use leetcoderustapi::resources::test_send::TestExecutionResult;
 
+#[must_use]
 pub fn format_test_result(
     id: u32, name: &str, result: &TestExecutionResult,
 ) -> String {
     let mut output = String::new();
 
-    output.push_str(&format!("🧪 Test Results for Problem {id}: {name}\n"));
+    let _ = writeln!(output, "🧪 Test Results for Problem {id}: {name}\n");
     output.push_str(&"=".repeat(50));
     output.push('\n');
     output.push_str(&format_status_message(result.status_msg.as_deref()));
@@ -14,7 +17,7 @@ pub fn format_test_result(
 
     // Language
     if let Some(ref lang) = result.pretty_lang {
-        output.push_str(&format!("🔧 Language: {}\n", lang.cyan()));
+        let _ = writeln!(output, "🔧 Language: {}", lang.cyan());
     }
 
     // // Execution success
@@ -34,80 +37,72 @@ pub fn format_test_result(
         } else {
             |s: String| s.red()
         };
-        output.push_str(&format!(
-            "📊 Test Cases: {}\n",
+        let _ = writeln!(
+            output,
+            "📊 Test Cases: {}",
             ratio_color(format!("{correct}/{total}"))
-        ));
+        );
     }
 
     // Runtime and memory (only if successful)
     if result.run_success == Some(true) {
         if let Some(ref runtime) = result.status_runtime {
             if runtime != "N/A" {
-                output.push_str(&format!("⏱️ Runtime: {}\n", runtime.blue()));
+                let _ = writeln!(output, "⏱️ Runtime: {}", runtime.blue());
             }
         }
 
         if let Some(ref memory) = result.status_memory {
             if memory != "N/A" {
-                output.push_str(&format!("💾 Memory: {}\n", memory.blue()));
+                let _ = writeln!(output, "💾 Memory: {}", memory.blue());
             }
         }
 
         // Percentiles if available
         if let Some(Some(runtime_perc)) = result.runtime_percentile {
-            output.push_str(&format!(
-                "📈 Runtime Percentile: {runtime_perc:.1}%\n"
-            ));
+            let _ =
+                writeln!(output, "📈 Runtime Percentile: {runtime_perc:.1}%\n");
         }
 
         if let Some(Some(memory_perc)) = result.memory_percentile {
-            output.push_str(&format!(
-                "📈 Memory Percentile: {memory_perc:.1}%\n"
-            ));
+            let _ =
+                writeln!(output, "📈 Memory Percentile: {memory_perc:.1}%\n");
         }
     }
 
     // Compilation errors
     if let Some(ref compile_error) = result.compile_error {
         if !compile_error.is_empty() {
-            output.push_str(&format!(
-                "\n🔴 {}\n",
-                "Compilation Error:".red().bold()
-            ));
-            output.push_str(&format!("{}\n", compile_error.red()));
+            let _ =
+                writeln!(output, "\n🔴 {}", "Compilation Error:".red().bold());
+            let _ = writeln!(output, "{}", compile_error.red());
         }
     }
 
     // Detailed compilation errors
     if let Some(ref full_error) = result.full_compile_error {
         if !full_error.is_empty() && result.compile_error.is_none() {
-            output.push_str(&format!(
-                "\n📋 {}\n",
-                "Detailed Error:".red().bold()
-            ));
-            output.push_str(&format!("{full_error}\n"));
+            let _ = writeln!(output, "\n📋 {}", "Detailed Error:".red().bold());
+            let _ = writeln!(output, "{full_error}");
         }
     }
 
     // Wrong answer details
     if let Some(ref code_output) = result.code_output {
         if !code_output.is_empty() {
-            output.push_str(&format!("\n❌ {}\n", "Your Output:".red().bold()));
+            let _ = writeln!(output, "\n❌ {}", "Your Output:".red().bold());
             for (i, out) in code_output.iter().enumerate() {
-                output.push_str(&format!("Test {}: {}\n", i + 1, out));
+                let _ = writeln!(output, "Test {}: {}", i + 1, out);
             }
         }
     }
 
     if let Some(ref expected_output) = result.expected_code_output {
         if !expected_output.is_empty() {
-            output.push_str(&format!(
-                "\n✅ {}\n",
-                "Expected Output:".green().bold()
-            ));
+            let _ =
+                writeln!(output, "\n✅ {}", "Expected Output:".green().bold());
             for (i, out) in expected_output.iter().enumerate() {
-                output.push_str(&format!("Test {}: {}\n", i + 1, out));
+                let _ = writeln!(output, "Test {}: {}", i + 1, out);
             }
         }
     }
@@ -117,13 +112,11 @@ pub fn format_test_result(
         if !std_output.is_empty()
             && std_output.iter().any(|s| !s.trim().is_empty())
         {
-            output.push_str(&format!(
-                "\n📤 {}\n",
-                "Standard Output:".blue().bold()
-            ));
+            let _ =
+                writeln!(output, "\n📤 {}", "Standard Output:".blue().bold());
             for (i, out) in std_output.iter().enumerate() {
                 if !out.trim().is_empty() {
-                    output.push_str(&format!("Test {}: {}\n", i + 1, out));
+                    let _ = writeln!(output, "Test {}: {}", i + 1, out);
                 }
             }
         }

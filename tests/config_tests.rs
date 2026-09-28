@@ -57,15 +57,14 @@ fn test_config_file_creation() {
     let config_file = home_dir.join(".config/leetcode-cli/config.toml");
     let mut config = RuntimeConfigSetup::new();
     match config.status() {
-        Ok(_) => {
+        Ok(()) => {
             assert!(
                 config_file.exists(),
-                "Config file should exist at: {:?}",
-                config_file
+                "Config file should exist at: {config_file:?}"
             );
         },
         Err(e) => {
-            panic!("Failed to check config status: {}", e);
+            panic!("Failed to check config status: {e}");
         },
     }
 }

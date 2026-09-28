@@ -22,6 +22,7 @@ pub struct LocalConfig {
 }
 
 impl LocalConfig {
+    #[must_use]
     pub fn new(
         problem_id: u32, problem_name: String, language: String,
     ) -> Self {
@@ -29,6 +30,11 @@ impl LocalConfig {
     }
 
     /// Find and read local config from current directory or parent directories
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the current directory cannot be read, or (kind
+    /// `InvalidData`) when a found `.leetcode-cli` contains invalid toml.
     pub fn find_and_read() -> io::Result<Option<Self>> {
         let mut current_dir = std::env::current_dir()?;
 
@@ -52,6 +58,11 @@ impl LocalConfig {
     }
 
     /// Write local config to specified directory
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the config cannot be serialized (`InvalidData`) or
+    /// the file cannot be written.
     pub fn write_to_dir(&self, dir: &Path) -> io::Result<()> {
         let config_path = dir.join(".leetcode-cli");
         let content = toml::to_string(self)
@@ -60,6 +71,11 @@ impl LocalConfig {
     }
 
     /// Read local config from specified file path
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` when the file cannot be read or contains invalid toml
+    /// (kind `InvalidData`).
     pub fn read_from_path(path: &Path) -> io::Result<Self> {
         let content = fs::read_to_string(path)?;
         toml::from_str(&content)
@@ -68,13 +84,20 @@ impl LocalConfig {
 
     /// Get the main source file name based on language, the same name `start`
     /// writes the starter code to
+    #[must_use]
     pub fn get_main_file(&self) -> String {
-        parse_programming_language(&self.language)
-            .map(|lang| get_file_name(&lang))
-            .unwrap_or_else(|_| "main.txt".to_string())
+        parse_programming_language(&self.language).map_or_else(
+            |_| "main.txt".to_string(),
+            |lang| get_file_name(&lang),
+        )
     }
 
     /// Resolve problem ID and file path from CLI args or local config
+    ///
+    /// # Errors
+    ///
+    /// `io::Error` (kind `NotFound`) when neither args nor a `.leetcode-cli`
+    /// config provide a problem ID.
     pub fn resolve_problem_params(
         id: Option<u32>, path_to_file: Option<String>,
     ) -> io::Result<(u32, String)> {
@@ -82,39 +105,35 @@ impl LocalConfig {
             (Some(id), Some(path)) => Ok((id, path.clone())),
             _ => {
                 // Try to find local config
-                match Self::find_and_read()? {
-                    Some(config) => {
-                        let problem_id = id.unwrap_or(config.problem_id);
-                        let file_path = path_to_file.unwrap_or_else(|| {
-                            format!("src/{}", config.get_main_file())
-                        });
-                        Ok((problem_id, file_path))
-                    },
-                    None => {
-                        if id.is_none() {
-                            return Err(io::Error::new(
-                                io::ErrorKind::NotFound,
-                                "No problem ID provided and no .leetcode-cli \
-                                 config found. Either provide the problem ID \
-                                 as an argument or run from a problem \
-                                 directory",
-                            ));
-                        }
-                        if path_to_file.is_none() {
-                            return Err(io::Error::new(
-                                io::ErrorKind::NotFound,
-                                "No file path provided",
-                            ));
-                        }
-                        // If we get here, both id and path_to_file must be Some
-                        match (id, path_to_file) {
-                            (Some(id), Some(path)) => Ok((id, path)),
-                            _ => Err(io::Error::other(
-                                "Unexpected error: id or path_to_file missing \
-                                 after checks",
-                            )),
-                        }
-                    },
+                if let Some(config) = Self::find_and_read()? {
+                    let problem_id = id.unwrap_or(config.problem_id);
+                    let file_path = path_to_file.unwrap_or_else(|| {
+                        format!("src/{}", config.get_main_file())
+                    });
+                    Ok((problem_id, file_path))
+                } else {
+                    if id.is_none() {
+                        return Err(io::Error::new(
+                            io::ErrorKind::NotFound,
+                            "No problem ID provided and no .leetcode-cli \
+                             config found. Either provide the problem ID as \
+                             an argument or run from a problem directory",
+                        ));
+                    }
+                    if path_to_file.is_none() {
+                        return Err(io::Error::new(
+                            io::ErrorKind::NotFound,
+                            "No file path provided",
+                        ));
+                    }
+                    // If we get here, both id and path_to_file must be Some
+                    match (id, path_to_file) {
+                        (Some(id), Some(path)) => Ok((id, path)),
+                        _ => Err(io::Error::other(
+                            "Unexpected error: id or path_to_file missing \
+                             after checks",
+                        )),
+                    }
                 }
             },
         }

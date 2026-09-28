@@ -23,6 +23,7 @@ pub enum CodeSignatureError {
 }
 
 impl CodeSignature {
+    #[must_use]
     pub fn new_function(name: String, params: Vec<String>) -> Self {
         Self {
             function_name: name,
@@ -32,6 +33,7 @@ impl CodeSignature {
         }
     }
 
+    #[must_use]
     pub fn new_class(class_name: String, method_name: String) -> Self {
         Self {
             function_name: method_name,
@@ -41,6 +43,12 @@ impl CodeSignature {
         }
     }
 
+    /// Parses starter code for the given language.
+    ///
+    /// # Errors
+    ///
+    /// `ParseError` when the signature cannot be read or the language is
+    /// unsupported for signature parsing.
     pub fn parse_code_signature(
         lang: &ProgrammingLanguage, starter_code: &str,
     ) -> Result<CodeSignature, CodeSignatureError> {
@@ -64,7 +72,7 @@ impl CodeSignature {
             let class_line = &starter_code[class_start..class_end];
 
             if let Some(class_name) =
-                class_line.strip_prefix("class ").map(|s| s.trim())
+                class_line.strip_prefix("class ").map(str::trim)
             {
                 if let Some(def_start) = starter_code.find("def ") {
                     let (method_name, _) = Self::parse_name_and_parameters(
@@ -128,6 +136,18 @@ impl CodeSignature {
     /// Methods of a rust design problem class (`struct LRUCache` and its
     /// `impl`), `new` included. Classes named `Solution` are random problems
     /// (384 shuffle, 528 pick index) and are not supported.
+    ///
+    /// # Errors
+    ///
+    /// `NoSolution` when the code contains no supported design class, only
+    /// a `Solution` class, or the `impl` block has no `new` method.
+    /// `ParseError` propagates from `parse_rust_function` on malformed
+    /// signatures.
+    ///
+    /// # Panics
+    ///
+    /// Panics only if the hardcoded regexes are invalid — compile-time
+    /// constants, cannot happen in practice.
     pub fn parse_rust_design(
         starter_code: &str,
     ) -> Result<Vec<CodeSignature>, CodeSignatureError> {
@@ -167,6 +187,7 @@ impl CodeSignature {
 
     /// Type of each parameter (`nums: Vec<i32>` -> `Vec<i32>`), `None` when
     /// it cannot be read.
+    #[must_use]
     pub fn parameter_types(&self) -> Vec<Option<String>> {
         self.parameters
             .iter()
@@ -174,6 +195,13 @@ impl CodeSignature {
             .collect()
     }
 
+    /// Removes `//` line comments and `/* */` block comments from rust code.
+    ///
+    /// # Panics
+    ///
+    /// Panics only if the hardcoded comment regexes are invalid — they are
+    /// compile-time constants, so this cannot happen in practice.
+    #[must_use]
     pub fn strip_rust_comments(code: &str) -> String {
         let block = regex::Regex::new(r"(?s)/\*.*?\*/").expect("valid regex");
         let line = regex::Regex::new(r"(?m)//.*$").expect("valid regex");
@@ -230,6 +258,14 @@ impl CodeSignature {
         Err(CodeSignatureError::ParseError)
     }
 
+    /// Builds the source code declaration of the test subject for the given
+    /// language (`struct` for rust design classes, plain signature for C).
+    ///
+    /// # Panics
+    ///
+    /// Panics when the language is neither `Rust` nor `C` — only those two
+    /// declaration styles exist.
+    #[must_use]
     pub fn resolve_declaration(
         lang: &ProgrammingLanguage, test_data: &str,
     ) -> String {
@@ -347,6 +383,7 @@ impl CodeSignature {
         }
     }
 
+    #[must_use]
     pub fn parse_array_elements(inner: &str) -> Vec<String> {
         let mut elements = Vec::new();
         let mut current = String::new();
