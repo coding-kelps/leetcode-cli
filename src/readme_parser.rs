@@ -51,9 +51,10 @@ impl LeetcodeReadmeParser {
     }
 
     fn extract_inputs(&self) -> Vec<String> {
-        // multi-line inputs (eg matrices) go on until the Output line
+        // multi-line inputs (eg matrices) go on until the Output line, design
+        // problems write `Input` / `Output` alone on their line
         self.extract_from_pattern(
-            r"(?ms)^\s*\*?\*?Input:\*?\*?[ \t]*(.*?)\s*^\s*\*?\*?Output:",
+            r"(?ms)^\s*\*?\*?Input(?:\*?\*?:\*?\*?|\*?\*?[ \t]*$)\s*(.*?)\s*^\s*\*?\*?Output(?:\*?\*?:|\*?\*?[ \t]*$)",
         )
     }
 
@@ -61,7 +62,7 @@ impl LeetcodeReadmeParser {
         // an output ends with a blank line, a `Explanation:` like line (typos
         // included) or the code block
         self.extract_from_pattern(
-            r"(?ms)^\s*\*?\*?Output:\*?\*?[ \t]*(.*?)\s*(?:\n\s*\n|^\s*\*?\*?[A-Z][A-Za-z ]{0,30}:|^\s*```|\z)",
+            r"(?ms)^\s*\*?\*?Output(?:\*?\*?:\*?\*?|\*?\*?[ \t]*$)\s*(.*?)\s*(?:\n\s*\n|^\s*\*?\*?[A-Z][A-Za-z ]{0,30}:|^\s*\*?\*?Expla|^\s*```|\z)",
         )
     }
 

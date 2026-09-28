@@ -354,3 +354,15 @@ fn test_output_stops_at_misspelled_explanation() {
     let data = LeetcodeReadmeParser::new(readme).parse().unwrap();
     assert_eq!(data.outputs, vec!["\"100\""]);
 }
+
+#[test]
+fn test_design_labels_without_colon() {
+    let readme = "**Example 1:**\n\n```\nInput\n[\"MinStack\",\"push\",\"top\"\
+                  ]\n[[],[-2],[]]\n\nOutput\n[null,null,-2]\n\nExplanation\\
+                  nMinStack minStack = new MinStack();\n```\n";
+    let data = LeetcodeReadmeParser::new(readme).parse().unwrap();
+    assert_eq!(data.inputs, vec![
+        "[\"MinStack\",\"push\",\"top\"] [[],[-2],[]]"
+    ]);
+    assert_eq!(data.outputs, vec!["[null,null,-2]"]);
+}

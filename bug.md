@@ -36,3 +36,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] `&self` methods calling a judge api (278 isBadVersion) get tests passing the inputs as the method arguments, they are now skipped like interactive problems
 - [x] design problems naming their class `Solution` (384 398 478 519 528 710) get a second `pub struct Solution;` and tests calling `new`, the prefix is skipped and so are the tests
 - [x] `NestedInteger` (385) has no `Definition for` title so its enum stays commented, and the expected values are raw numbers / lists, the enum is now uncommented and values become `NestedInteger::Int` / `List`
+- [x] design problems write `Input` / `Output` / `Explanation` alone on their line without a colon, no example is read
