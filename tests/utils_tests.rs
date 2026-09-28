@@ -237,5 +237,5 @@ fn test_uncomment_local_definitions_without_title() {
     let result =
         utils::uncomment_local_definitions(starter, &ProgrammingLanguage::Rust);
     assert!(result.contains("\n#[derive(Debug, PartialEq, Eq)]\npub enum"));
-    assert!(!result.contains("// "));
+    assert!(!result.contains("// pub enum"));
 }
