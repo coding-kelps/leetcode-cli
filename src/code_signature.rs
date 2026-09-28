@@ -174,7 +174,7 @@ impl CodeSignature {
             .collect()
     }
 
-    fn strip_rust_comments(code: &str) -> String {
+    pub fn strip_rust_comments(code: &str) -> String {
         let block = regex::Regex::new(r"(?s)/\*.*?\*/").expect("valid regex");
         let line = regex::Regex::new(r"(?m)//.*$").expect("valid regex");
         line.replace_all(&block.replace_all(code, ""), "").into_owned()

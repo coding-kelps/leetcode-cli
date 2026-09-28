@@ -305,12 +305,16 @@ impl TestGenerator {
             // Split input parameters and convert each one with its type
             let input_params =
                 self.split_input_parameters(&self.test_data.inputs[i]);
-            // `&self` methods call an api of the judge (278 isBadVersion)
+            // `&self` methods call an api of the judge (278 isBadVersion), so
+            // do types the starter does not define (1095 MountainArray)
             let uses_self = signature.parameters.iter().any(|p| {
                 p.trim().trim_start_matches("&mut ").trim_start_matches('&')
                     == "self"
             });
-            if uses_self || input_params.len() != parameter_types.len() {
+            if uses_self
+                || self.uses_undefined_type(signature)
+                || input_params.len() != parameter_types.len()
+            {
                 return Err(TestGeneratorError::InputMismatch);
             }
             let mut arguments = Vec::new();
@@ -400,6 +404,25 @@ impl TestGenerator {
             "#[cfg(test)]\nmod tests {{\n    use \
              super::*;\n\n{helpers}{tests}}}\n"
         )
+    }
+
+    /// A parameter type neither from std nor defined in the starter code,
+    /// eg an interface of the judge.
+    fn uses_undefined_type(&self, signature: &CodeSignature) -> bool {
+        let known = [
+            "Vec", "String", "Option", "Box", "Rc", "RefCell", "ListNode",
+            "TreeNode",
+        ];
+        let code = CodeSignature::strip_rust_comments(&self.starter_code);
+        let type_name = regex::Regex::new(r"\b[A-Z]\w*").expect("valid regex");
+        signature.parameter_types().iter().flatten().any(|ty| {
+            type_name.find_iter(ty).any(|name| {
+                let name = name.as_str();
+                !known.contains(&name)
+                    && !code.contains(&format!("struct {name}"))
+                    && !code.contains(&format!("enum {name}"))
+            })
+        })
     }
 
     /// `["LRUCache","put"] [[2],[1,1]]` -> (`"LRUCache","put"`, `[2],[1,1]`)

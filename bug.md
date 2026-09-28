@@ -39,3 +39,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] design problems write `Input` / `Output` / `Explanation` alone on their line without a colon, no example is read
 - [x] design problems (LRU cache, min stack, trie ...) get no tests, the calls of the example are now replayed on one object, random answers (`get_random`, classes named `Solution`) are not checked
 - [x] design starters use `Rc` / `RefCell` without importing them (173 BSTIterator), the imports are added to the local definitions
+- [x] judge interfaces as parameters (1095 `&MountainArray`) get tests passing arrays, types neither from std nor defined in the starter now skip the tests

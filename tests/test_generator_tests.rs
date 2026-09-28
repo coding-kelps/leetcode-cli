@@ -480,3 +480,19 @@ fn test_rust_design_problem_unknown_method_is_an_error() {
         .run(&ProgrammingLanguage::Rust);
     assert_eq!(result, Err(TestGeneratorError::InputMismatch));
 }
+
+#[test]
+fn test_rust_judge_interface_parameters_are_not_generated() {
+    let starter_code = "impl Solution {\n    pub fn \
+                        find_in_mountain_array(target: i32, mountainArr: \
+                        &MountainArray) -> i32 {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["3,[1,2,3,4,5,3,1]".to_string()],
+        outputs:       vec!["2".to_string()],
+    };
+    let result = TestGenerator::new(&starter_code, test_data)
+        .run(&ProgrammingLanguage::Rust);
+    assert_eq!(result, Err(TestGeneratorError::InputMismatch));
+}
