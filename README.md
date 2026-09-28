@@ -103,14 +103,14 @@ your `PATH`.
 ### From the releases
 
 prebuilt binaries for linux x64 (glibc) are attached to each
-[github release](https://github.com/coding-kelps/leetcode-cli/releases), along
+[github release](https://github.com/dfayd0/leetcode-cli/releases), along
 with a sha512 checksum:
 
 ```sh
 LEETCODE_CLI_VERSION=0.1.0
 RELEASE_ASSET="leetcode-cli-${LEETCODE_CLI_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
-curl -fLO "https://github.com/coding-kelps/leetcode-cli/releases/download/v${LEETCODE_CLI_VERSION}/${RELEASE_ASSET}" \
-     -fLO "https://github.com/coding-kelps/leetcode-cli/releases/download/v${LEETCODE_CLI_VERSION}/${RELEASE_ASSET}.sha512"
+curl -fLO "https://github.com/dfayd0/leetcode-cli/releases/download/v${LEETCODE_CLI_VERSION}/${RELEASE_ASSET}" \
+     -fLO "https://github.com/dfayd0/leetcode-cli/releases/download/v${LEETCODE_CLI_VERSION}/${RELEASE_ASSET}.sha512"
 sha512sum -c "${RELEASE_ASSET}.sha512"
 tar -xzf "${RELEASE_ASSET}"
 sudo mv "leetcode-cli-${LEETCODE_CLI_VERSION}/leetcode-cli" /usr/local/bin/
