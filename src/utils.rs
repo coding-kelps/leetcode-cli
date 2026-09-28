@@ -297,6 +297,13 @@ pub fn uncomment_local_definitions(
         }
         result.push(code.strip_prefix(' ').unwrap_or(code).to_string());
     }
+    // design problems use `Rc` without importing it, the judge does
+    if result.iter().any(|line| line.contains("Rc<"))
+        && !starter_code.contains("use std::rc::Rc")
+    {
+        result.push("use std::rc::Rc;".to_string());
+        result.push("use std::cell::RefCell;".to_string());
+    }
     result.push(LOCAL_DEFINITIONS_END.to_string());
     result.extend(lines[end..].iter().map(|line| line.to_string()));
     result.join("\n")

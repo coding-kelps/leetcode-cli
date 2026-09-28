@@ -239,3 +239,17 @@ fn test_uncomment_local_definitions_without_title() {
     assert!(result.contains("\n#[derive(Debug, PartialEq, Eq)]\npub enum"));
     assert!(!result.contains("// pub enum"));
 }
+
+#[test]
+fn test_uncomment_local_definitions_adds_rc_imports() {
+    let starter = "// Definition for a binary tree node.\n// pub struct \
+                   TreeNode {\n//   pub left: \
+                   Option<Rc<RefCell<TreeNode>>>,\n// }\nstruct BSTIterator {}";
+    let result =
+        utils::uncomment_local_definitions(starter, &ProgrammingLanguage::Rust);
+    assert!(result.contains(
+        "use std::rc::Rc;\nuse std::cell::RefCell;\n// leetcode-cli: end"
+    ));
+    let submitted = utils::preprocess_code(&result, &ProgrammingLanguage::Rust);
+    assert!(!submitted.contains("use std::rc::Rc;"));
+}
