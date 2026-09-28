@@ -46,6 +46,15 @@ impl LeetcodeReadmeParser {
             .is_match(&self.raw)
     }
 
+    /// True when any of several valid answers is accepted.
+    pub fn many_answers(&self) -> bool {
+        Regex::new(
+            r"(?i)return any of them|any valid answer|multiple (valid )?(answers|solutions)|return any (one|such)",
+        )
+        .expect("valid regex")
+        .is_match(&self.raw)
+    }
+
     fn count_examples(&self) -> usize {
         self.raw.lines().filter(|line| line.starts_with("**Example")).count()
     }

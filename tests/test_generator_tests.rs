@@ -513,3 +513,26 @@ fn test_rust_design_null_arguments() {
         .unwrap();
     assert!(result.contains("let result = obj.order();"));
 }
+
+#[test]
+fn test_rust_many_answers_note() {
+    let starter_code =
+        "impl Solution {\n    pub fn f(n: i32) -> i32 {\n        todo!()\n    \
+         }\n}"
+            .to_string();
+    let test_data = || ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["1".to_string()],
+        outputs:       vec!["1".to_string()],
+    };
+    let note = "// several answers are accepted";
+    let result = TestGenerator::new(&starter_code, test_data())
+        .many_answers(true)
+        .run(&ProgrammingLanguage::Rust)
+        .unwrap();
+    assert!(result.contains(note));
+    let result = TestGenerator::new(&starter_code, test_data())
+        .run(&ProgrammingLanguage::Rust)
+        .unwrap();
+    assert!(!result.contains(note));
+}

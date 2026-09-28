@@ -41,3 +41,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] design starters use `Rc` / `RefCell` without importing them (173 BSTIterator), the imports are added to the local definitions
 - [x] judge interfaces as parameters (1095 `&MountainArray`) get tests passing arrays, types neither from std nor defined in the starter now skip the tests
 - [x] design calls without arguments written `[null]` (1600) do not match the method parameters, they are now read as no argument
+- [x] problems accepting any of several answers fail on a valid answer different from the example, the test module now says so in a comment

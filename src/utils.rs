@@ -328,6 +328,7 @@ pub fn build_problem_file(
     let tests = readme.parse().map_err(io::Error::from).and_then(|test_data| {
         TestGenerator::new(&starter_code, test_data)
             .any_order(readme.any_order())
+            .many_answers(readme.many_answers())
             .run(lang)
             .map_err(io::Error::from)
     });

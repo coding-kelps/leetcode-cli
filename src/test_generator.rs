@@ -48,6 +48,7 @@ pub struct TestGenerator {
     starter_code: String,
     test_data:    ProblemTestData,
     any_order:    bool,
+    many_answers: bool,
 }
 
 #[derive(thiserror::Error, Debug, Clone, Copy, PartialEq, Eq)]
@@ -77,6 +78,7 @@ impl TestGenerator {
             starter_code: starter_code.to_owned(),
             test_data,
             any_order: false,
+            many_answers: false,
         }
     }
 
@@ -84,6 +86,13 @@ impl TestGenerator {
     /// before being compared.
     pub fn any_order(mut self, any_order: bool) -> Self {
         self.any_order = any_order;
+        self
+    }
+
+    /// Several answers are accepted, the tests only know the one of the
+    /// example and say so.
+    pub fn many_answers(mut self, many_answers: bool) -> Self {
+        self.many_answers = many_answers;
         self
     }
 
@@ -388,10 +397,10 @@ impl TestGenerator {
                 "    #[test]\n    fn test_case_{i}() {{\n{body}    }}\n"
             ));
         }
-        Ok(Self::rust_test_module(&tests))
+        Ok(self.rust_test_module(&tests))
     }
 
-    fn rust_test_module(tests: &[String]) -> String {
+    fn rust_test_module(&self, tests: &[String]) -> String {
         let tests = tests.join("\n");
         let mut helpers = String::new();
         if tests.contains("to_list(") {
@@ -400,8 +409,14 @@ impl TestGenerator {
         if tests.contains("to_tree(") {
             helpers.push_str(RUST_TO_TREE);
         }
+        let note = if self.many_answers {
+            "    // several answers are accepted, a valid answer different \
+             from the example\n    // one fails these tests\n"
+        } else {
+            ""
+        };
         format!(
-            "#[cfg(test)]\nmod tests {{\n    use \
+            "#[cfg(test)]\nmod tests {{\n{note}    use \
              super::*;\n\n{helpers}{tests}}}\n"
         )
     }
@@ -568,7 +583,7 @@ impl TestGenerator {
                 "    #[test]\n    fn test_case_{i}() {{\n{body}    }}\n"
             ));
         }
-        Ok(Self::rust_test_module(&tests))
+        Ok(self.rust_test_module(&tests))
     }
 
     pub fn run(

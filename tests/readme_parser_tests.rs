@@ -366,3 +366,12 @@ fn test_design_labels_without_colon() {
     ]);
     assert_eq!(data.outputs, vec!["[null,null,-2]"]);
 }
+
+#[test]
+fn test_many_answers_is_detected() {
+    assert!(LeetcodeReadmeParser::new(
+        "If there are multiple answers, return any of them."
+    )
+    .many_answers());
+    assert!(!LeetcodeReadmeParser::new("Return the answer.").many_answers());
+}
