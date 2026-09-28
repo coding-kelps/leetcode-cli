@@ -109,8 +109,8 @@ with a sha512 checksum:
 ```sh
 LEETCODE_CLI_VERSION=0.1.0
 RELEASE_ASSET="leetcode-cli-${LEETCODE_CLI_VERSION}-x86_64-unknown-linux-gnu.tar.gz"
-curl -LO "https://github.com/coding-kelps/leetcode-cli/releases/download/v${LEETCODE_CLI_VERSION}/${RELEASE_ASSET}" \
-     -LO "https://github.com/coding-kelps/leetcode-cli/releases/download/v${LEETCODE_CLI_VERSION}/${RELEASE_ASSET}.sha512"
+curl -fLO "https://github.com/coding-kelps/leetcode-cli/releases/download/v${LEETCODE_CLI_VERSION}/${RELEASE_ASSET}" \
+     -fLO "https://github.com/coding-kelps/leetcode-cli/releases/download/v${LEETCODE_CLI_VERSION}/${RELEASE_ASSET}.sha512"
 sha512sum -c "${RELEASE_ASSET}.sha512"
 tar -xzf "${RELEASE_ASSET}"
 sudo mv "leetcode-cli-${LEETCODE_CLI_VERSION}/leetcode-cli" /usr/local/bin/
