@@ -42,3 +42,4 @@ Found by generating the file `start` writes for real leetcode rust starter codes
 - [x] judge interfaces as parameters (1095 `&MountainArray`) get tests passing arrays, types neither from std nor defined in the starter now skip the tests
 - [x] design calls without arguments written `[null]` (1600) do not match the method parameters, they are now read as no argument
 - [x] problems accepting any of several answers fail on a valid answer different from the example, the test module now says so in a comment
+- [x] codec problems (297 449 535) give a value instead of calls, the tests now check `decode(encode(value))` gives the output back

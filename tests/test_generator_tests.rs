@@ -536,3 +536,26 @@ fn test_rust_many_answers_note() {
         .unwrap();
     assert!(!result.contains(note));
 }
+
+#[test]
+fn test_rust_codec_roundtrip() {
+    let starter_code = "struct Codec {}\nimpl Codec {\n    fn new() -> Self \
+                        {\n        todo!()\n    }\n    fn encode(&self, \
+                        longURL: String) -> String {\n        todo!()\n    \
+                        }\n    fn decode(&self, shortURL: String) -> String \
+                        {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["\"https://a.b\"".to_string()],
+        outputs:       vec!["\"https://a.b\"".to_string()],
+    };
+    let result = TestGenerator::new(&starter_code, test_data)
+        .run(&ProgrammingLanguage::Rust)
+        .unwrap();
+    assert!(result.contains("let obj = Codec::new();"));
+    assert!(result.contains(
+        "let result = obj.decode(obj.encode(\"https://a.b\".to_string()));"
+    ));
+    assert!(result.contains("assert_eq!(result, expected);"));
+}

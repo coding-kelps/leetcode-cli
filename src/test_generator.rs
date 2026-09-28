@@ -440,6 +440,76 @@ impl TestGenerator {
         })
     }
 
+    /// Codec problems (297 serialize tree, 535 tiny url): the example gives
+    /// a value and expects it back from `decode(encode(value))`.
+    fn generate_rust_roundtrip_tests(
+        &self, methods: &[CodeSignature],
+    ) -> Result<String, TestGeneratorError> {
+        let arguments = |method: &CodeSignature| -> Vec<Option<String>> {
+            method
+                .parameter_types()
+                .into_iter()
+                .zip(&method.parameters)
+                .filter(|(_, p)| !p.trim().ends_with("self"))
+                .map(|(ty, _)| ty)
+                .collect()
+        };
+        let (encode, decode) = match methods
+            .iter()
+            .filter(|m| m.function_name != "new")
+            .collect::<Vec<_>>()
+            .as_slice()
+        {
+            [encode, decode]
+                if arguments(encode).len() == 1
+                    && arguments(decode) == [encode.return_type.clone()] =>
+            {
+                (*encode, *decode)
+            },
+            _ => return Err(TestGeneratorError::InputMismatch),
+        };
+        let class = encode.class_name.as_deref().unwrap_or_default();
+        let input_type = arguments(encode).remove(0);
+        let output_type = decode.return_type.as_deref();
+
+        let mut tests = Vec::new();
+        for i in 0..self.test_case_count() {
+            let input = self.split_input_parameters(&self.test_data.inputs[i]);
+            let [input] = input.as_slice() else {
+                return Err(TestGeneratorError::InputMismatch);
+            };
+            let mut lines = vec![
+                format!("let obj = {class}::new();"),
+                format!(
+                    "let expected{} = {};",
+                    output_type.map(|ty| format!(": {ty}")).unwrap_or_default(),
+                    CodeSignature::resolve_rust_typed_declaration(
+                        &self.test_data.outputs[i],
+                        output_type
+                    )
+                ),
+                format!(
+                    "let result = obj.{}(obj.{}({}));",
+                    decode.function_name,
+                    encode.function_name,
+                    CodeSignature::resolve_rust_typed_declaration(
+                        input,
+                        input_type.as_deref()
+                    )
+                ),
+            ];
+            lines.extend(Self::rust_assertion("result", output_type, false));
+            let body = lines
+                .iter()
+                .map(|line| format!("        {line}\n"))
+                .collect::<String>();
+            tests.push(format!(
+                "    #[test]\n    fn test_case_{i}() {{\n{body}    }}\n"
+            ));
+        }
+        Ok(self.rust_test_module(&tests))
+    }
+
     /// `["LRUCache","put"] [[2],[1,1]]` -> (`"LRUCache","put"`, `[2],[1,1]`)
     fn split_design_input(input: &str) -> Option<(&str, &str)> {
         let mut depth = 0;
@@ -472,6 +542,15 @@ impl TestGenerator {
     fn generate_rust_design_tests(
         &self, methods: &[CodeSignature],
     ) -> Result<String, TestGeneratorError> {
+        let class = methods[0].class_name.as_deref().unwrap_or_default();
+        let is_calls = |input: &str| {
+            Self::split_design_input(input).is_some_and(|(calls, _)| {
+                calls.trim().starts_with(&format!("\"{class}\""))
+            })
+        };
+        if !self.test_data.inputs.iter().any(|input| is_calls(input)) {
+            return self.generate_rust_roundtrip_tests(methods);
+        }
         let normalize = |name: &str| name.replace('_', "").to_lowercase();
         let mut tests = Vec::new();
         for i in 0..self.test_case_count() {
