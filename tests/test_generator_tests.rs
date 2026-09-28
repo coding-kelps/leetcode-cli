@@ -496,3 +496,20 @@ fn test_rust_judge_interface_parameters_are_not_generated() {
         .run(&ProgrammingLanguage::Rust);
     assert_eq!(result, Err(TestGeneratorError::InputMismatch));
 }
+
+#[test]
+fn test_rust_design_null_arguments() {
+    let starter_code = "struct A {}\nimpl A {\n    fn new(name: String) -> \
+                        Self {\n        todo!()\n    }\n    fn order(&self) \
+                        -> Vec<String> {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[\"A\",\"order\"] [[\"king\"],[null]]".to_string()],
+        outputs:       vec!["[null,[\"king\"]]".to_string()],
+    };
+    let result = TestGenerator::new(&starter_code, test_data)
+        .run(&ProgrammingLanguage::Rust)
+        .unwrap();
+    assert!(result.contains("let result = obj.order();"));
+}

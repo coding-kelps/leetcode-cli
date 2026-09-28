@@ -494,6 +494,11 @@ impl TestGenerator {
                     .and_then(|values| values.strip_suffix(']'))
                     .map(CodeSignature::parse_array_elements)
                     .unwrap_or_default();
+                // calls without arguments are sometimes written `[null]` (1600)
+                let values = match values.as_slice() {
+                    [value] if value == "null" => Vec::new(),
+                    _ => values,
+                };
                 let types: Vec<Option<String>> = method
                     .parameter_types()
                     .into_iter()
