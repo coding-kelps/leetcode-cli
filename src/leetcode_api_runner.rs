@@ -17,9 +17,7 @@ use nanohtml2text::html2text;
 use crate::{
     config::RuntimeConfigSetup,
     local_config::LocalConfig,
-    readme_parser::LeetcodeReadmeParser,
     result_formatter::format_test_result,
-    test_generator::TestGenerator,
     utils::*,
 };
 
@@ -89,35 +87,15 @@ impl LeetcodeApiRunner {
         let (pb_dir, src_dir, mut warning) =
             self.prepare_problem_dir(id, &pb_name, &lang)?;
 
-        let mut starter_code = self.get_starter_code(&lang, &pb)?;
-        starter_code = inject_default_return_value(&starter_code, &lang);
-        starter_code = uncomment_local_definitions(&starter_code, &lang);
-
-        // Tests are a bonus, the problem is still set up without them.
-        let readme = LeetcodeReadmeParser::new(&md_desc);
-        let tests =
-            readme.parse().map_err(io::Error::from).and_then(|test_data| {
-                TestGenerator::new(&starter_code, test_data)
-                    .any_order(readme.any_order())
-                    .run(&lang)
-                    .map_err(io::Error::from)
+        let starter_code = self.get_starter_code(&lang, &pb)?;
+        let (file_content, test_warning) =
+            build_problem_file(&starter_code, &md_desc, &lang);
+        if let Some(test_warning) = test_warning {
+            warning = Some(match warning {
+                Some(w) => format!("{w}\n{test_warning}"),
+                None => test_warning,
             });
-        let mut file_content = match tests {
-            Ok(tests) => format!("{starter_code}\n\n{tests}"),
-            Err(e) => {
-                let test_warning = format!(
-                    "No tests generated for {}: {e}",
-                    language_to_string(&lang)
-                );
-                warning = Some(match warning {
-                    Some(w) => format!("{w}\n{test_warning}"),
-                    None => test_warning,
-                });
-                starter_code.clone()
-            },
-        };
-        file_content = prefix_code(&file_content, &lang);
-        file_content = postfix_code(&file_content, &lang);
+        }
         write_readme(&pb_dir, id, &pb_name, &md_desc)?;
         write_to_file(&src_dir, &get_file_name(&lang), &file_content)?;
 

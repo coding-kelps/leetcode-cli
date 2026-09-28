@@ -10,6 +10,11 @@ use std::{
 use colored::Colorize;
 use leetcoderustapi::ProgrammingLanguage;
 
+use crate::{
+    readme_parser::LeetcodeReadmeParser,
+    test_generator::TestGenerator,
+};
+
 /// Ensures that a directory exists, creating it if necessary.
 pub fn ensure_directory_exists(path: &Path) -> io::Result<PathBuf> {
     let path = Path::new(&path);
@@ -307,6 +312,37 @@ pub fn uncomment_local_definitions(
     result.push(LOCAL_DEFINITIONS_END.to_string());
     result.extend(lines[end..].iter().map(|line| line.to_string()));
     result.join("\n")
+}
+
+/// Content of the solution file of a problem: the starter code, the
+/// generated tests and the language boilerplate. The error is a warning
+/// telling why no tests were generated.
+pub fn build_problem_file(
+    starter_code: &str, md_desc: &str, lang: &ProgrammingLanguage,
+) -> (String, Option<String>) {
+    let starter_code = inject_default_return_value(starter_code, lang);
+    let starter_code = uncomment_local_definitions(&starter_code, lang);
+
+    // Tests are a bonus, the problem is still set up without them.
+    let readme = LeetcodeReadmeParser::new(md_desc);
+    let tests = readme.parse().map_err(io::Error::from).and_then(|test_data| {
+        TestGenerator::new(&starter_code, test_data)
+            .any_order(readme.any_order())
+            .run(lang)
+            .map_err(io::Error::from)
+    });
+    let (file_content, warning) = match tests {
+        Ok(tests) => (format!("{starter_code}\n\n{tests}"), None),
+        Err(e) => (
+            starter_code,
+            Some(format!(
+                "No tests generated for {}: {e}",
+                language_to_string(lang)
+            )),
+        ),
+    };
+    let file_content = prefix_code(&file_content, lang);
+    (postfix_code(&file_content, lang), warning)
 }
 
 fn remove_local_definitions(content: &str) -> String {
