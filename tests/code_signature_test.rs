@@ -251,3 +251,27 @@ fn test_resolve_rust_nested_integer() {
          NestedInteger::List(vec![NestedInteger::Int(456)])])"
     );
 }
+
+#[test]
+fn test_parse_rust_design_skips_node_definitions() {
+    let starter = "pub struct TreeNode {}\nimpl TreeNode {\n    pub fn \
+                   new(val: i32) -> Self {}\n}\nstruct BSTIterator {}\nimpl \
+                   BSTIterator {\n    fn new(root: \
+                   Option<Rc<RefCell<TreeNode>>>) -> Self {}\n    fn \
+                   has_next(&self) -> bool {}\n}";
+    let methods = CodeSignature::parse_rust_design(starter).unwrap();
+    assert_eq!(methods.len(), 2);
+    assert_eq!(methods[0].class_name.as_deref(), Some("BSTIterator"));
+    assert_eq!(methods[1].function_name, "has_next");
+    assert_eq!(methods[1].return_type.as_deref(), Some("bool"));
+}
+
+#[test]
+fn test_parse_rust_design_random_solution_is_an_error() {
+    let starter = "struct Solution {}\nimpl Solution {\n    fn new(nums: \
+                   Vec<i32>) -> Self {}\n}";
+    assert_eq!(
+        CodeSignature::parse_rust_design(starter).unwrap_err(),
+        CodeSignatureError::NoSolution
+    );
+}

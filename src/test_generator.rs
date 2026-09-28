@@ -384,6 +384,10 @@ impl TestGenerator {
                 "    #[test]\n    fn test_case_{i}() {{\n{body}    }}\n"
             ));
         }
+        Ok(Self::rust_test_module(&tests))
+    }
+
+    fn rust_test_module(tests: &[String]) -> String {
         let tests = tests.join("\n");
         let mut helpers = String::new();
         if tests.contains("to_list(") {
@@ -392,10 +396,151 @@ impl TestGenerator {
         if tests.contains("to_tree(") {
             helpers.push_str(RUST_TO_TREE);
         }
-        Ok(format!(
+        format!(
             "#[cfg(test)]\nmod tests {{\n    use \
              super::*;\n\n{helpers}{tests}}}\n"
-        ))
+        )
+    }
+
+    /// `["LRUCache","put"] [[2],[1,1]]` -> (`"LRUCache","put"`, `[2],[1,1]`)
+    fn split_design_input(input: &str) -> Option<(&str, &str)> {
+        let mut depth = 0;
+        let mut in_quotes = false;
+        for (i, ch) in input.char_indices() {
+            match ch {
+                '"' => in_quotes = !in_quotes,
+                '[' if !in_quotes => depth += 1,
+                ']' if !in_quotes => {
+                    depth -= 1;
+                    if depth == 0 {
+                        let calls = input[..i].trim().strip_prefix('[')?;
+                        let arguments = input[i + 1..]
+                            .trim()
+                            .trim_start_matches(',')
+                            .trim()
+                            .strip_prefix('[')?
+                            .strip_suffix(']')?;
+                        return Some((calls, arguments));
+                    }
+                },
+                _ => {},
+            }
+        }
+        None
+    }
+
+    /// Design problems: the example is a list of calls on one object,
+    /// `["LRUCache","put","get"] [[2],[1,1],[1]]` -> `[null,null,1]`.
+    fn generate_rust_design_tests(
+        &self, methods: &[CodeSignature],
+    ) -> Result<String, TestGeneratorError> {
+        let normalize = |name: &str| name.replace('_', "").to_lowercase();
+        let mut tests = Vec::new();
+        for i in 0..self.test_case_count() {
+            let (calls, arguments) =
+                Self::split_design_input(&self.test_data.inputs[i])
+                    .ok_or(TestGeneratorError::InputMismatch)?;
+            let calls = CodeSignature::parse_array_elements(calls);
+            let arguments = CodeSignature::parse_array_elements(arguments);
+            let outputs = self.test_data.outputs[i]
+                .trim()
+                .strip_prefix('[')
+                .and_then(|outputs| outputs.strip_suffix(']'))
+                .map(CodeSignature::parse_array_elements)
+                .ok_or(TestGeneratorError::InputMismatch)?;
+            if calls.len() != arguments.len() || calls.len() != outputs.len() {
+                return Err(TestGeneratorError::InputMismatch);
+            }
+
+            let mut lines = vec!["#[allow(unused_mut)]".to_string()];
+            for (k, call) in calls.iter().enumerate() {
+                let call = call.trim_matches('"');
+                let method = methods
+                    .iter()
+                    .find(|m| {
+                        if k == 0 {
+                            m.function_name == "new"
+                        } else {
+                            normalize(&m.function_name) == normalize(call)
+                        }
+                    })
+                    .ok_or(TestGeneratorError::InputMismatch)?;
+                let values = arguments[k]
+                    .trim()
+                    .strip_prefix('[')
+                    .and_then(|values| values.strip_suffix(']'))
+                    .map(CodeSignature::parse_array_elements)
+                    .unwrap_or_default();
+                let types: Vec<Option<String>> = method
+                    .parameter_types()
+                    .into_iter()
+                    .zip(&method.parameters)
+                    .filter(|(_, p)| !p.trim().ends_with("self"))
+                    .map(|(ty, _)| ty)
+                    .collect();
+                if values.len() != types.len() {
+                    return Err(TestGeneratorError::InputMismatch);
+                }
+                let args = values
+                    .iter()
+                    .zip(&types)
+                    .map(|(value, ty)| {
+                        let ty = ty.as_deref();
+                        let reference = match ty {
+                            Some(ty) if ty.starts_with("&mut ") => "&mut ",
+                            Some(ty) if ty.starts_with('&') => "&",
+                            _ => "",
+                        };
+                        format!(
+                            "{reference}{}",
+                            CodeSignature::resolve_rust_typed_declaration(
+                                value, ty
+                            )
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ");
+
+                if k == 0 {
+                    let class =
+                        method.class_name.as_deref().unwrap_or_default();
+                    lines.push(format!("let mut obj = {class}::new({args});"));
+                    continue;
+                }
+                let name = &method.function_name;
+                let output = outputs[k].trim();
+                // random answers (380 getRandom) cannot be checked
+                match &method.return_type {
+                    Some(ty)
+                        if output != "null" && !name.contains("random") =>
+                    {
+                        lines.push(format!(
+                            "let expected: {ty} = {};",
+                            CodeSignature::resolve_rust_typed_declaration(
+                                output,
+                                Some(ty)
+                            )
+                        ));
+                        lines.push(format!("let result = obj.{name}({args});"));
+                        lines.extend(Self::rust_assertion(
+                            "result",
+                            Some(ty),
+                            false,
+                        ));
+                    },
+                    _ => lines.push(format!("obj.{name}({args});")),
+                }
+            }
+
+            let body = lines
+                .iter()
+                .map(|line| format!("        {line}\n"))
+                .collect::<String>();
+            tests.push(format!(
+                "    #[test]\n    fn test_case_{i}() {{\n{body}    }}\n"
+            ));
+        }
+        Ok(Self::rust_test_module(&tests))
     }
 
     pub fn run(
@@ -405,7 +550,15 @@ impl TestGenerator {
             return Err(TestGeneratorError::UnsupportedLanguage);
         }
         let signature =
-            CodeSignature::parse_code_signature(lang, &self.starter_code)?;
+            match CodeSignature::parse_code_signature(lang, &self.starter_code)
+            {
+                Err(CodeSignatureError::NoSolution) if matches!(lang, Rust) => {
+                    let methods =
+                        CodeSignature::parse_rust_design(&self.starter_code)?;
+                    return self.generate_rust_design_tests(&methods);
+                },
+                signature => signature?,
+            };
 
         match lang {
             Rust => self.generate_rust_tests(&signature),

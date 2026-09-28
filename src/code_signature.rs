@@ -16,7 +16,8 @@ pub enum CodeSignatureError {
     #[error("Error parsing code signature")]
     ParseError,
     #[error(
-        "no `impl Solution` found, tests are not generated for design problems"
+        "no `impl Solution` nor design class found, or a random design \
+         problem, tests are not generated"
     )]
     NoSolution,
 }
@@ -104,8 +105,14 @@ impl CodeSignature {
             .find("fn ")
             .ok_or(CodeSignatureError::ParseError)?
             + solution;
-        let (fn_name, parameters, rest) =
-            Self::parse_signature_parts(&code[start + 3..])?;
+        Self::parse_rust_function(&code[start + 3..])
+    }
+
+    /// `name(params) -> Type {` right after a `fn `
+    fn parse_rust_function(
+        code: &str,
+    ) -> Result<CodeSignature, CodeSignatureError> {
+        let (fn_name, parameters, rest) = Self::parse_signature_parts(code)?;
         let return_type = rest
             .split('{')
             .next()
@@ -116,6 +123,46 @@ impl CodeSignature {
             return_type,
             ..CodeSignature::new_function(fn_name, parameters)
         })
+    }
+
+    /// Methods of a rust design problem class (`struct LRUCache` and its
+    /// `impl`), `new` included. Classes named `Solution` are random problems
+    /// (384 shuffle, 528 pick index) and are not supported.
+    pub fn parse_rust_design(
+        starter_code: &str,
+    ) -> Result<Vec<CodeSignature>, CodeSignatureError> {
+        let code = Self::strip_rust_comments(starter_code);
+        // skip the uncommented ListNode / TreeNode definitions
+        let classes: Vec<String> = regex::Regex::new(r"\bstruct\s+(\w+)")
+            .expect("valid regex")
+            .captures_iter(&code)
+            .map(|caps| caps[1].to_string())
+            .filter(|class| !["ListNode", "TreeNode"].contains(&class.as_str()))
+            .collect();
+        let class = classes
+            .first()
+            .filter(|_| !classes.iter().any(|c| c == "Solution"))
+            .cloned()
+            .ok_or(CodeSignatureError::NoSolution)?;
+        let impl_start = code
+            .find(&format!("impl {class}"))
+            .ok_or(CodeSignatureError::NoSolution)?;
+        let fn_re = regex::Regex::new(r"\bfn\s+").expect("valid regex");
+        let methods = fn_re
+            .find_iter(&code[impl_start..])
+            .map(|m| {
+                Self::parse_rust_function(&code[impl_start + m.end()..]).map(
+                    |signature| CodeSignature {
+                        class_name: Some(class.clone()),
+                        ..signature
+                    },
+                )
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+        if !methods.iter().any(|method| method.function_name == "new") {
+            return Err(CodeSignatureError::NoSolution);
+        }
+        Ok(methods)
     }
 
     /// Type of each parameter (`nums: Vec<i32>` -> `Vec<i32>`), `None` when
@@ -300,7 +347,7 @@ impl CodeSignature {
         }
     }
 
-    fn parse_array_elements(inner: &str) -> Vec<String> {
+    pub fn parse_array_elements(inner: &str) -> Vec<String> {
         let mut elements = Vec::new();
         let mut current = String::new();
         let mut bracket_depth = 0;

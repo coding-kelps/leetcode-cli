@@ -439,3 +439,44 @@ fn test_rust_self_methods_are_not_generated() {
         .run(&ProgrammingLanguage::Rust);
     assert_eq!(result, Err(TestGeneratorError::InputMismatch));
 }
+
+#[test]
+fn test_rust_design_problem() {
+    let starter_code = "struct MinStack {\n\n}\n\nimpl MinStack {\n    fn \
+                        new() -> Self {\n        todo!()\n    }\n    fn \
+                        push(&self, val: i32) {\n        todo!()\n    }\n    \
+                        fn get_min(&self) -> i32 {\n        todo!()\n    }\n}"
+        .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec![
+            "[\"MinStack\",\"push\",\"getMin\"] [[],[-2],[]]".to_string()
+        ],
+        outputs:       vec!["[null,null,-2]".to_string()],
+    };
+
+    let result = TestGenerator::new(&starter_code, test_data)
+        .run(&ProgrammingLanguage::Rust)
+        .unwrap();
+
+    assert!(result.contains("let mut obj = MinStack::new();"));
+    assert!(result.contains("obj.push(-2);"));
+    assert!(result.contains("let expected: i32 = -2;"));
+    assert!(result.contains("let result = obj.get_min();"));
+}
+
+#[test]
+fn test_rust_design_problem_unknown_method_is_an_error() {
+    let starter_code =
+        "struct A {}\nimpl A {\n    fn new() -> Self {\n        todo!()\n    \
+         }\n}"
+            .to_string();
+    let test_data = ProblemTestData {
+        example_count: 1,
+        inputs:        vec!["[\"A\",\"missing\"] [[],[]]".to_string()],
+        outputs:       vec!["[null,1]".to_string()],
+    };
+    let result = TestGenerator::new(&starter_code, test_data)
+        .run(&ProgrammingLanguage::Rust);
+    assert_eq!(result, Err(TestGeneratorError::InputMismatch));
+}
