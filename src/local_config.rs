@@ -95,8 +95,9 @@ impl LocalConfig {
                             return Err(io::Error::new(
                                 io::ErrorKind::NotFound,
                                 "No problem ID provided and no .leetcode-cli \
-                                 config found. Either provide --id or run \
-                                 from a problem directory",
+                                 config found. Either provide the problem ID \
+                                 as an argument or run from a problem \
+                                 directory",
                             ));
                         }
                         if path_to_file.is_none() {

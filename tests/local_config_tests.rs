@@ -1,5 +1,9 @@
+use std::sync::Mutex;
+
 use leetcode_cli::local_config::LocalConfig;
 use tempfile::TempDir;
+
+static DIR_LOCK: Mutex<()> = Mutex::new(());
 
 #[test]
 fn test_local_config_creation() {
@@ -71,6 +75,7 @@ fn test_find_config_not_found() {
 
 #[test]
 fn test_find_config_in_current_dir() {
+    let _guard = DIR_LOCK.lock().unwrap();
     let temp_dir = TempDir::new().unwrap();
     let original_dir = std::env::current_dir().unwrap();
 
@@ -94,6 +99,7 @@ fn test_find_config_in_current_dir() {
 
 #[test]
 fn test_find_config_in_parent_dir() {
+    let _guard = DIR_LOCK.lock().unwrap();
     let temp_dir = TempDir::new().unwrap();
     let original_dir = std::env::current_dir().unwrap();
 

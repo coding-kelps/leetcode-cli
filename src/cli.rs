@@ -18,26 +18,21 @@ pub enum Commands {
         browser: Option<String>,
     },
     Info {
-        #[arg(short = 'i', long)]
         id: u32,
     },
     Start {
-        #[arg(short = 'i', long)]
         id: u32,
 
         #[arg(short = 'l', long = "lang")]
         language: Option<String>,
     },
     Test {
-        #[arg(short = 'i', long)]
         id:           Option<u32>,
         #[arg(short = 'p', long = "file")]
         path_to_file: Option<String>,
     },
     Submit {
-        #[arg(short = 'i', long)]
-        id: Option<u32>,
-
+        id:           Option<u32>,
         #[arg(short = 'p', long = "file")]
         path_to_file: Option<String>,
     },

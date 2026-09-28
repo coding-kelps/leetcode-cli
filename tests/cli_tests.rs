@@ -6,7 +6,7 @@ use leetcode_cli::cli::{
 
 #[test]
 fn test_cli_info_command() {
-    let args = vec!["leetcode_cli", "info", "--id", "1"];
+    let args = vec!["leetcode_cli", "info", "1"];
     let cli = Cli::try_parse_from(args).unwrap();
 
     match cli.command {
@@ -17,7 +17,7 @@ fn test_cli_info_command() {
 
 #[test]
 fn test_cli_start_command() {
-    let args = vec!["leetcode_cli", "start", "--id", "1", "--lang", "rust"];
+    let args = vec!["leetcode_cli", "start", "1", "--lang", "rust"];
     let cli = Cli::try_parse_from(args).unwrap();
 
     match cli.command {
@@ -31,7 +31,7 @@ fn test_cli_start_command() {
 
 #[test]
 fn test_cli_test_command() {
-    let args = vec!["leetcode_cli", "test", "--id", "1", "--file", "main.rs"];
+    let args = vec!["leetcode_cli", "test", "1", "--file", "main.rs"];
     let cli = Cli::try_parse_from(args).unwrap();
 
     match cli.command {
@@ -59,8 +59,7 @@ fn test_cli_test_command_no_args() {
 
 #[test]
 fn test_cli_submit_command() {
-    let args =
-        vec!["leetcode_cli", "submit", "--id", "1", "--file", "solution.py"];
+    let args = vec!["leetcode_cli", "submit", "1", "--file", "solution.py"];
     let cli = Cli::try_parse_from(args).unwrap();
 
     match cli.command {
