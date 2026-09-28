@@ -249,3 +249,15 @@ leetcode-cli test 42 --file src/custom_solution.rs
 ## Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests to improve the tool.
+
+## Documentation
+
+The full documentation is built with [mdBook](https://rust-lang.github.io/mdBook/).
+
+- read it online: https://dfayd0.github.io/leetcode-cli/
+- read it locally:
+
+```sh
+cargo install mdbook
+mdbook serve docs
+```

@@ -1,0 +1,9 @@
+[book]
+title = "leetcode-cli"
+authors = ["dfayd0", "Coding Kelps"]
+language = "en"
+description = "A Rust command-line interface for LeetCode: browse problems, start them locally in any language, generate tests, run and submit solutions from the terminal"
+
+[output.html]
+git-repository-url = "https://github.com/coding-kelps/leetcode-cli"
+edit-url-template = "https://github.com/coding-kelps/leetcode-cli/edit/main/docs/src/{path}"
