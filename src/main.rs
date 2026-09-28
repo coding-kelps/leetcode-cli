@@ -21,16 +21,17 @@ use leetcode_cli::{
 async fn build_api_runner(
     rcs: &mut RuntimeConfigSetup,
 ) -> Result<Option<LeetcodeApiRunner>, Box<dyn std::error::Error>> {
-    if let Ok(api_runner) = LeetcodeApiRunner::new(rcs).await {
-        return Ok(Some(api_runner));
-    }
-
-    if rcs.config.leetcode_token.is_empty() {
+    // an empty token cannot be valid, skip the doomed api attempt and log
+    // it right away
+    let no_token = rcs.config.leetcode_token.is_empty();
+    if no_token {
         eprintln!(
             "No LeetCode token found in {}.\nOpening the browser to log in \
              once and save it automatically...",
             rcs.config_file.display()
         );
+    } else if let Ok(api_runner) = LeetcodeApiRunner::new(rcs).await {
+        return Ok(Some(api_runner));
     } else {
         eprintln!(
             "Your saved LeetCode token looks expired or invalid.\nOpening the \
