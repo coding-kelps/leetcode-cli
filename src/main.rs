@@ -14,6 +14,51 @@ use leetcode_cli::{
     RuntimeConfigSetup,
 };
 
+/// Creates the api client, and if the saved token is expired or invalid,
+/// transparently re-runs the browser login to get a fresh one before
+/// retrying. The persisted browser profile usually makes the re-login
+/// instant, without any manual action.
+async fn build_api_runner(
+    rcs: &mut RuntimeConfigSetup,
+) -> Result<Option<LeetcodeApiRunner>, Box<dyn std::error::Error>> {
+    if let Ok(api_runner) = LeetcodeApiRunner::new(rcs).await {
+        return Ok(Some(api_runner));
+    }
+
+    if rcs.config.leetcode_token.is_empty() {
+        eprintln!(
+            "No LeetCode token found in {}.\nOpening the browser to log in \
+             once and save it automatically...",
+            rcs.config_file.display()
+        );
+    } else {
+        eprintln!(
+            "Your saved LeetCode token looks expired or invalid.\nOpening the \
+             browser to refresh it (log in if prompted)..."
+        );
+    }
+    let spin = spin_the_spinner("Waiting for leetcode login...");
+    let result = run_login(rcs).await;
+    stop_and_clear_spinner(spin);
+    match result {
+        Ok(message) => println!("{message}"),
+        Err(e) => {
+            eprintln!("Automatic token refresh failed: {e}");
+            eprintln!("Run `leetcode-cli login` to log in manually.");
+            return Ok(None);
+        },
+    }
+
+    rcs.status()?;
+    match LeetcodeApiRunner::new(rcs).await {
+        Ok(api_runner) => Ok(Some(api_runner)),
+        Err(e) => {
+            eprintln!("Error creating the API client after re-login: {e}");
+            Ok(None)
+        },
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
@@ -34,16 +79,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Ok(());
     }
 
-    if rcs.config.leetcode_token.is_empty() {
-        eprintln!(
-            "No LeetCode token found in {}.\nRun `leetcode-cli login` to log \
-             in once and save it automatically.",
-            rcs.config_file.display()
-        );
+    let Some(api_runner) = build_api_runner(&mut rcs).await? else {
         return Ok(());
-    }
-
-    let api_runner = LeetcodeApiRunner::new(&rcs).await?;
+    };
 
     match &cli.command {
         Commands::Info { id } => {
